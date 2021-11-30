@@ -9,6 +9,8 @@ RUN curl https://www.passmark.com/downloads/pt_linux_x64.zip -O
 RUN unzip pt_linux_x64.zip
 RUN rm pt_linux_x64.zip
 RUN mkdir data
-RUN mv pt_linux_x64 data
+
+COPY ./run.sh /
+RUN chmod 777 run.sh
 
 ENTRYPOINT ["bash"]
