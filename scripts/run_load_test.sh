@@ -20,7 +20,7 @@ do
     echo -n "$(date +%s)" >> ./data/load_events
     echo  -n " $cpus" >> ./data/load_events
 
-    docker run -v /home/stefano/Desktop/PowerConsumptionAnalysis/data:/data --cpus=$cpus -e CURRENTLOAD=$cpus -it stegala/passmark_container:latest ./run.sh
+    docker run -v /home/stefano/Desktop/PowerConsumptionAnalysis/data:/data --cpus=$cpus -e CURRENTLOAD=$cpus -e TESTLEN=3 -e TESTITERATIONS=5 -it stegala/passmark_container:latest ./run.sh
 
     echo "Testing with cpu=$cpus"
 
