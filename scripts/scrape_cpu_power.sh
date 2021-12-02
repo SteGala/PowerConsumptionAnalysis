@@ -12,9 +12,9 @@ do
     misc_consumption=$(cat output_cpu_power.csv | grep "CPU misc" | cut -d ";" -f 3)
     memory_consumption=$(cat output_cpu_power.csv | grep ";DRAM" | cut -d ";" -f 3)
 
-    echo "$(date +%s) $core_consumption" >> ./data/cpu_core_consumption
-    echo "$(date +%s) $misc_consumption" >> ./data/cpu_misc_consumption
-    echo "$(date +%s) $memory_consumption" >> ./data/memory_consumption
+    echo "$(date +%s)$core_consumption" >> ./data/cpu_core_consumption
+    echo "$(date +%s)$misc_consumption" >> ./data/cpu_misc_consumption
+    echo "$(date +%s)$memory_consumption" >> ./data/memory_consumption
 
     #usage=$(cat output_cpu_power.csv | grep "The system baseline power is estimated at:" | cut -d " " -f 9)
 
