@@ -177,12 +177,14 @@ def plot_power_consumption_on_load(data1, data2, data3, load, load_events):
 def plot_cpu_efficiency(load, load_events):
     _, x_values = compute_load_average_data(load, load_events)
 
+    #print(x_values)
     x_values = [str(int(i)) for i in x_values]
     y_values = [i["score"] for i in load_events]
+    #print(y_values)
 
     fig, ax = plt.subplots()
 
-    ax.plot(x_values, y_values)
+    ax.plot(x_values, y_values, 'o')
 
     ax.set_xlabel("CPU load (%)")
     ax.set_ylabel("Passmark Score")
@@ -307,6 +309,75 @@ def plot_cpu_scores(load, load_events):
     fig.savefig("../data/plot/CPU_scores.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
     plt.close(fig)
 
+def plot_load_consumption_dispersion(load, consumption):
+    result = []
+    cumulative_load = 0
+    count_load = 0
+    last_load_minute = 0
+    if len(load) > 0:
+        last_load_minute = load[0]["time"].minute
+    else:
+        exit(-1)
+
+    for l in load:
+        if l["time"].minute == last_load_minute and l["time"] != load[len(load)-1]["time"]:
+            cumulative_load = cumulative_load + l["usage"]
+            count_load = count_load + 1
+        elif l["time"].minute != last_load_minute or l["time"] == load[len(load)-1]["time"]:
+            cumulative_consumption = 0
+            count_consumption = 0
+
+            for c in consumption:
+                if c["time"].minute == last_load_minute:
+                    cumulative_consumption = cumulative_consumption + c["usage"]
+                    count_consumption = count_consumption + 1
+
+            r = {}
+            if count_load > 0:
+                r["load"] = cumulative_load/count_load
+            else:
+                r["load"] = 0
+            if count_consumption > 0:
+                r["consumption"] = cumulative_consumption/count_consumption
+            else:
+                r["consumption"] = 0
+
+            result.append(r)
+
+            last_load_minute = l["time"].minute
+            cumulative_load = l["usage"]
+            count_load = 1
+
+    x_values = []
+    y_values = []
+
+    for r in result:
+        x_values.append(r["load"])
+        y_values.append(r["consumption"])
+
+    fig, ax = plt.subplots()
+
+    ax.plot(x_values, y_values, 'o')
+
+    ax.set_xlabel("CPU load (%)")
+    ax.set_ylabel("Power consumption (W)")
+
+    fig.savefig("../data/plot/Load_Consumption_scatter.png")
+    plt.close(fig)
+    
+def plot_score_on_assigned_resources(load_events):
+    x_values = []
+    y_values = []
+    for event in load_events:
+        x_values.append(event["load"])
+        y_values.append(event["score"])
+
+    fig, ax = plt.subplots()
+    ax.plot(x_values, y_values)
+    ax.set_xlabel("CPU core assigned")
+    ax.set_ylabel("Passmark score")
+    fig.savefig("../data/plot/Passmark_score.png")
+    plt.close(fig)
 
 if __name__ == "__main__":
     load_events = read_load_events()
@@ -325,4 +396,6 @@ if __name__ == "__main__":
     plot_cpu_efficiency(cpu_usage_aggregated, load_events)
     plot_cpu_scores(cpu_usage_aggregated, load_events)
     plot_averaged_monitored_cpu_usage(cpu_usage_aggregated, cpu_usage_docker_aggregated, load_events)
+    plot_load_consumption_dispersion(cpu_usage_aggregated, cpu_core_consumption)
+    plot_score_on_assigned_resources(load_events)
     
