@@ -158,9 +158,13 @@ def plot_power_consumption_on_load(data1, data2, data3, load, load_events):
     _, avg_data1 = compute_load_average_data(data1, load_events)
     _, avg_data2 = compute_load_average_data(data2, load_events)
     _, avg_data3 = compute_load_average_data(data3, load_events)
-    _, x_values = compute_load_average_data(load, load_events)
+    #_, x_values = compute_load_average_data(load, load_events)
 
-    x_values = [str(int(i)) for i in x_values]
+    x_values = []
+    for event in load_events:
+        x_values.append(event["load"])
+
+    x_values = [str(i) for i in x_values]
     fig, ax = plt.subplots()
 
     ax.bar(x_values, avg_data3, width, label="DRAM")
@@ -168,26 +172,28 @@ def plot_power_consumption_on_load(data1, data2, data3, load, load_events):
     ax.bar(x_values, avg_data2, width, bottom=avg_data1, label="cpu misc")
 
     ax.legend()
-    ax.set_xlabel("CPU load (%)")
+    ax.set_xlabel("Assigned CPU cores")
     ax.set_ylabel("Power consumption (W)")
 
     fig.savefig("../data/plot/Power_consumption.png")
     plt.close(fig)
         
 def plot_cpu_efficiency(load, load_events):
-    _, x_values = compute_load_average_data(load, load_events)
+    x_values = []
+    for event in load_events:
+        x_values.append(event["load"])
 
-    #print(x_values)
-    x_values = [str(int(i)) for i in x_values]
+    x_values = [str(i) for i in x_values]
     y_values = [i["score"] for i in load_events]
-    #print(y_values)
 
-    fig, ax = plt.subplots()
+    fig, ax1 = plt.subplots()
 
-    ax.plot(x_values, y_values, 'o')
+    ax1.bar(x_values, y_values)
 
-    ax.set_xlabel("CPU load (%)")
-    ax.set_ylabel("Passmark Score")
+    ax1.set_xlabel("Assigned CPU cores")
+    ax1.set_ylabel("Passmark Score")
+
+    fig.tight_layout()
 
     fig.savefig("../data/plot/CPU_score.png")
     plt.close(fig)
@@ -285,8 +291,14 @@ def load_cpu_scores(load_events):
     return result_normalized
 
 def plot_cpu_scores(load, load_events):
-    _, x_values = compute_load_average_data(load, load_events)
-    x_values = [str(int(i)) for i in x_values]
+    #_, x_values = compute_load_average_data(load, load_events)
+    #x_values = [str(int(i)) for i in x_values]
+
+    x_values = []
+    for event in load_events:
+        x_values.append(event["load"])
+
+    x_values = [str(i) for i in x_values]
 
     scores = load_cpu_scores(load_events)
 
@@ -301,9 +313,9 @@ def plot_cpu_scores(load, load_events):
                     box.width, box.height * 0.9])
 
     handles, labels = ax.get_legend_handles_labels()
-    lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5,-0.1), fancybox=True, shadow=True, ncol=4)
+    lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5,1.35), fancybox=True, shadow=True, ncol=4)
 
-    ax.set_xlabel("CPU load (%)")
+    ax.set_xlabel("Assigned CPU cores")
     ax.set_ylabel("Normalized Passmark score")
 
     fig.savefig("../data/plot/CPU_scores.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -379,6 +391,22 @@ def plot_score_on_assigned_resources(load_events):
     fig.savefig("../data/plot/Passmark_score.png")
     plt.close(fig)
 
+def plot_load_on_assigned_resources(load, load_events):
+    x_values = []
+    for event in load_events:
+        x_values.append(event["load"])
+
+    _, y_values = compute_load_average_data(load, load_events)
+
+    fig, ax = plt.subplots()
+    ax.plot(x_values, y_values)
+    ax.set_xlabel("CPU core assigned")
+    ax.set_ylabel("Measured CPU Load (%)")
+    fig.savefig("../data/plot/Measured_CPU_load_on_assigned_resources.png")
+    plt.close(fig)
+    
+
+
 if __name__ == "__main__":
     load_events = read_load_events()
     memory_usage = read_resource_usage("../data/memory_usage")
@@ -392,10 +420,20 @@ if __name__ == "__main__":
 
     cpu_usage_aggregated = aggregate_resource_usage(cpu_usage)
 
+
+    left  = 0.125  # the left side of the subplots of the figure
+    right = 0.9    # the right side of the subplots of the figure
+    bottom = 0.2   # the bottom of the subplots of the figure
+    top = 0.9      # the top of the subplots of the figure
+    wspace = 0.3   # the amount of width reserved for blank space between subplots
+    hspace = 0.3   # the amount of height reserved for white space between subplots
+    plt.subplots_adjust(left=left, bottom=bottom, right=right, top=top, wspace=wspace, hspace=hspace)
+
     plot_power_consumption_on_load(cpu_core_consumption, cpu_misc_consumption, memory_consumption, cpu_usage_aggregated, load_events)
     plot_cpu_efficiency(cpu_usage_aggregated, load_events)
     plot_cpu_scores(cpu_usage_aggregated, load_events)
     plot_averaged_monitored_cpu_usage(cpu_usage_aggregated, cpu_usage_docker_aggregated, load_events)
     plot_load_consumption_dispersion(cpu_usage_aggregated, cpu_core_consumption)
-    plot_score_on_assigned_resources(load_events)
+    #plot_score_on_assigned_resources(load_events)
+    plot_load_on_assigned_resources(cpu_usage_aggregated, load_events)
     
