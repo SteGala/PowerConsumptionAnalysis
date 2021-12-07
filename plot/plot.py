@@ -202,13 +202,9 @@ def load_cpu_scores(load_events):
     result = {}
     result_normalized = {}
     for event in load_events:
-        sub_name = ""
-        if event["load"] < 1:
-            sub_name = "." + str(int(event["load"]*10))
-        else:
-            sub_name = str(event["load"])
+        sub_name = str(int(event["load"]))
 
-        with open('../data/results_cpu_' + sub_name + "00.yml", 'r') as fileRead:
+        with open('../data/results_cpu_' + sub_name + ".yml", 'r') as fileRead:
             data = fileRead.readlines()
             for line in data:
                 if "CPU_INTEGER_MATH" in line:
