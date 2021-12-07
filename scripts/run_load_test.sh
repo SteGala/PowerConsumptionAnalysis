@@ -27,7 +27,7 @@ do
     docker run --name passmark_container -v /home/stefano/Desktop/PowerConsumptionAnalysis/data:/data --cpus=$cpus -e CURRENTLOAD=$cpus -e TESTLEN=4 -e TESTITERATIONS=2 -dit stegala/passmark_container:x86 ./run.sh  > /dev/null
     docker wait passmark_container > /dev/null
     # keep track of load events
-    echo -n " $(cat data/results_cpu_$cpus.yml| grep SUMM_CPU | cut -d ":" -f 2)" >> ./data/load_events
+    echo -n "$(cat data/results_cpu_$cpus.yml| grep SUMM_CPU | cut -d ":" -f 2)" >> ./data/load_events
     echo " $(date +%s)" >> ./data/load_events
 
     cpus=$(echo "scale=0;$cpus+$step" | bc)
