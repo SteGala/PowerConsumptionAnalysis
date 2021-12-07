@@ -1,14 +1,16 @@
 #!/bin/bash
 
-test_iteration=10
+#test_iteration=20
 
 touch ./data/load_events
 
 thread=$(nproc --all)
 echo "Detected $thread thread(s)"
 
-step=$(echo "scale=3;$thread/$test_iteration" | bc)
-echo "Testing with $test_iteration iterations and CPU step increase of $step"
+#step=$(echo "scale=3;$thread/$test_iteration" | bc)
+step=1
+
+echo "Testing with $thread iterations and CPU step increase of $step"
 echo
 
 cpus=$step
@@ -28,7 +30,7 @@ do
     echo -n " $(cat data/results_cpu_$cpus.yml| grep SUMM_CPU | cut -d ":" -f 2)" >> ./data/load_events
     echo " $(date +%s)" >> ./data/load_events
 
-    cpus=$(echo "scale=3;$cpus+$step" | bc)
+    cpus=$(echo "scale=0;$cpus+$step" | bc)
     docker rm passmark_container > /dev/null
     sleep 60
 done
