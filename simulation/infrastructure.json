@@ -1,0 +1,28 @@
+{
+    "name": "Infra1",
+    "devices": 
+    [
+        {
+            "name": "laptop",
+            "replicas": "3",
+            "CPU_cores": "8",
+            "load": {
+                "need_to_move": "true",
+                "load_to_move": [2]
+            },          
+            "consumption_details": "./example_consumption/laptop_consumption.json",
+            "performance_details": "./example_performance/laptop_performance.json"
+        },
+        {
+            "name": "desktop",
+            "replicas": "3",
+            "CPU_cores": "8",
+            "load": {
+                "need_to_move": "false",
+                "load_to_move": [0]
+            },          
+            "consumption_details": "./example_consumption/desktop_consumption.json",
+            "performance_details": "./example_performance/desktop_performance.json"
+        }
+    ]
+}
