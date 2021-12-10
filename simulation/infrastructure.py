@@ -40,11 +40,15 @@ def compare_by_efficiency(devices, sol1, sol2):
         CPU_used = devices[i].get_total_core() - sol1[i]
         consumption_sol1 = devices[i].get_consumption_at_load(CPU_used)
         score_sol1 = devices[i].get_score_at_load(CPU_used)
+        efficiency_sol1 = efficiency_sol1 + score_sol1/consumption_sol1
 
     for i in range(len(sol2)):
         CPU_used = devices[i].get_total_core() - sol2[i]
         consumption_sol2 = devices[i].get_consumption_at_load(CPU_used)
         score_sol2 = devices[i].get_score_at_load(CPU_used)
+        efficiency_sol2 = efficiency_sol2 + score_sol2/consumption_sol2
+
+    return efficiency_sol2 - efficiency_sol1
 
 
 class Infrastructure:
@@ -90,7 +94,7 @@ class Infrastructure:
         str_ret = str_ret + "Initial power consumption: \t" + str(self.compute_initial_consumption()) + " W" + "\n"
         str_ret = str_ret + "Final power consumption: \t" + str(round(self.compute_final_consumption(final_solution), 2)) + " W" + "\n"
         str_ret = str_ret + "Initial workload score: \t" + str(self.compute_initial_score()) + "\n"
-        str_ret = str_ret + "Final workload score:   \t" + str(self.compute_final_score(final_solution)) + "\n"
+        str_ret = str_ret + "Final workload score:   \t" + str(round(self.compute_final_score(final_solution), 2)) + "\n"
         str_ret = str_ret + "Devices: \n"
         for i in range(len(self.devices)):
             str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(self.devices[i].CPU_cores - final_solution[i]) + "/" + str(self.devices[i].CPU_cores) + "\n"

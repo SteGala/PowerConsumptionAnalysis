@@ -10,3 +10,7 @@ if __name__ == "__main__":
     print()
     print("Scheduling simulation optimized for execution score")
     infrastructure.schedule_wokloads(infra.compare_by_score)
+
+    print()
+    print("Scheduling simulation optimized for efficiency")
+    infrastructure.schedule_wokloads(infra.compare_by_efficiency)
