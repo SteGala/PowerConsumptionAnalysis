@@ -29,9 +29,6 @@ class Device:
     def __str__(self) -> str:
         return "- Dev name: " + self.name + "\tCPU cores: " + str(self.CPU_cores)
 
-    def has_load_to_move(self):
-        return self.has_load_to_move
-
     def compute_initial_workload_consumption(self):
         consumption = 0.0
         if self.has_load_to_move:
@@ -69,3 +66,14 @@ class Device:
                 score = score + float(self.performance["core_score"][id])
 
         return score
+
+    def get_total_core(self):
+        return self.CPU_cores
+
+    def get_consumption_at_load(self, load):
+        if load == 0:
+            return 0.0
+            
+        for i in range(len(self.consumption["core_usage"])):
+            if load == self.consumption["core_usage"][i]:
+                return float(self.consumption["core_consumption"][i])
