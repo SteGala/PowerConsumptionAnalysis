@@ -13,13 +13,38 @@ def compare_by_consumption(devices, sol1, sol2):
         CPU_used = devices[i].get_total_core() - sol2[i]
         consumption_sol2 = consumption_sol2 + devices[i].get_consumption_at_load(CPU_used)
 
+    # lower consumption better
     return consumption_sol1 - consumption_sol2
 
 
-def compare_by_score(it1, it2):
-    pass
-def compare_by_efficiency(it1, it2):
-    pass
+def compare_by_score(devices, sol1, sol2):
+    score_sol1 = 0
+    score_sol2 = 0
+
+    for i in range(len(sol1)):
+        CPU_used = devices[i].get_total_core() - sol1[i]
+        score_sol1 = score_sol1 + devices[i].get_score_at_load(CPU_used)
+
+    for i in range(len(sol2)):
+        CPU_used = devices[i].get_total_core() - sol2[i]
+        score_sol2 = score_sol2 + devices[i].get_score_at_load(CPU_used)
+
+    # higher score better
+    return score_sol2 - score_sol1
+
+def compare_by_efficiency(devices, sol1, sol2):
+    efficiency_sol1 = 0
+    efficiency_sol2 = 0
+
+    for i in range(len(sol1)):
+        CPU_used = devices[i].get_total_core() - sol1[i]
+        consumption_sol1 = devices[i].get_consumption_at_load(CPU_used)
+        score_sol1 = devices[i].get_score_at_load(CPU_used)
+
+    for i in range(len(sol2)):
+        CPU_used = devices[i].get_total_core() - sol2[i]
+        consumption_sol2 = devices[i].get_consumption_at_load(CPU_used)
+        score_sol2 = devices[i].get_score_at_load(CPU_used)
 
 
 class Infrastructure:
@@ -58,7 +83,19 @@ class Infrastructure:
                     workload.append(int(l))
 
         self.recursive_schedule(remaining_core, workload, final_solution, 0, compare_function)
-        print(final_solution)
+
+        str_ret = " -- Final Scheduling Report ---\n"
+        str_ret = str_ret + "Infrastructure name: " + self.infra_name + "\n"
+        str_ret = str_ret + "Number of devices: " + str(len(self.devices)) + "\n"
+        str_ret = str_ret + "Initial power consumption: \t" + str(self.compute_initial_consumption()) + " W" + "\n"
+        str_ret = str_ret + "Final power consumption: \t" + str(round(self.compute_final_consumption(final_solution), 2)) + " W" + "\n"
+        str_ret = str_ret + "Initial workload score: \t" + str(self.compute_initial_score()) + "\n"
+        str_ret = str_ret + "Final workload score:   \t" + str(self.compute_final_score(final_solution)) + "\n"
+        str_ret = str_ret + "Devices: \n"
+        for i in range(len(self.devices)):
+            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(self.devices[i].CPU_cores - final_solution[i]) + "/" + str(self.devices[i].CPU_cores) + "\n"
+        
+        print(str_ret)
     
     def recursive_schedule(self, remaining_core, workload, final_solution, id, compare_function):
         if id == len(workload):
@@ -93,6 +130,22 @@ class Infrastructure:
         for d in self.devices:
             str_ret = str_ret + "\t" + str(d) + "\n"
         return str_ret
+
+    def compute_final_consumption(self, remaining_resources):
+        consumption = 0.0
+        for i in range(len(remaining_resources)):
+            CPU_used = self.devices[i].get_total_core() - remaining_resources[i]
+            consumption = consumption + self.devices[i].get_consumption_at_load(CPU_used)
+
+        return consumption
+
+    def compute_final_score(self, remaining_resources):
+        score = 0.0
+        for i in range(len(remaining_resources)):
+            CPU_used = self.devices[i].get_total_core() - remaining_resources[i]
+            score = score + self.devices[i].get_score_at_load(CPU_used)
+
+        return score
 
     def compute_initial_consumption(self):
         consumption = 0

@@ -70,10 +70,12 @@ class Device:
     def get_total_core(self):
         return self.CPU_cores
 
-    def get_consumption_at_load(self, load):
-        if load == 0:
-            return 0.0
-            
+    def get_consumption_at_load(self, load):            
         for i in range(len(self.consumption["core_usage"])):
             if load == self.consumption["core_usage"][i]:
                 return float(self.consumption["core_consumption"][i])
+
+    def get_score_at_load(self, load):            
+        for i in range(len(self.performance["core_usage"])):
+            if load == self.performance["core_usage"][i]:
+                return float(self.performance["core_score"][i])
