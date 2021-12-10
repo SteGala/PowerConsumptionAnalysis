@@ -1,9 +1,10 @@
 import json
+import utils
 
 class Device:
     def __init__(self, device) -> None:
         self.name = device["name"]
-        self.CPU_cores = int(device["CPU_cores"])
+        self.CPU_cores = float(device["CPU_cores"])
         self.load_to_move = []
 
         if device["load"]["need_to_move"] == "true":
@@ -21,10 +22,8 @@ class Device:
         self.consumption = {}
         self.performance = {}
 
-        self.consumption["core_usage"] = data_consumption["data"]["core_usage"]
-        self.performance["core_usage"] = data_performance["data"]["core_usage"]
-        self.consumption["core_consumption"] = data_consumption["data"]["core_consumption"]
-        self.performance["core_score"] = data_performance["data"]["core_score"]
+        self.consumption["transfer_function"] = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_consumption["data"]["core_consumption"], self.name.split("-")[0], "Energy_consumption")
+        self.performance["transfer_function"] = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_performance["data"]["core_usage"], self.name.split("-")[0], "Pasmark_score")
         
     def __str__(self) -> str:
         return "- Dev name: " + self.name + "\tCPU cores: " + str(self.CPU_cores)
@@ -33,18 +32,9 @@ class Device:
         consumption = 0.0
         if self.has_load_to_move:
             for l in self.load_to_move:
-                id = 0
-                for cons in self.consumption["core_usage"]:
-                    if cons == l:
-                        break
-
-                    id = id + 1
-
-                if id >= len(self.consumption["core_usage"]):
-                    print("Mismatch between power consumption data and load to move")
-                    exit(-1)
-
-                consumption = consumption + float(self.consumption["core_consumption"][id])
+                consumption = consumption + float(self.consumption["transfer_function"](l))
+        else:
+            consumption = self.consumption["transfer_function"](0)
 
         return consumption
 
@@ -52,18 +42,7 @@ class Device:
         score = 0.0
         if self.has_load_to_move:
             for l in self.load_to_move:
-                id = 0
-                for cons in self.performance["core_usage"]:
-                    if cons == l:
-                        break
-
-                    id = id + 1
-
-                if id >= len(self.performance["core_usage"]):
-                    print("Mismatch between power consumption data and load to move")
-                    exit(-1)
-
-                score = score + float(self.performance["core_score"][id])
+                score = score + l
 
         return score
 
@@ -71,11 +50,11 @@ class Device:
         return self.CPU_cores
 
     def get_consumption_at_load(self, load):            
-        for i in range(len(self.consumption["core_usage"])):
-            if load == self.consumption["core_usage"][i]:
-                return float(self.consumption["core_consumption"][i])
+        return float(self.consumption["transfer_function"](load))
 
     def get_score_at_load(self, load):            
-        for i in range(len(self.performance["core_usage"])):
-            if load == self.performance["core_usage"][i]:
-                return float(self.performance["core_score"][i])
+        return float(self.performance["transfer_function"](load))
+
+    def convert_remaining_score_to_CPU_core(self, remaining_score):
+        score = self.CPU_cores - remaining_score
+        return float(self.performance["transfer_function"](score))

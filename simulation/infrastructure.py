@@ -1,5 +1,6 @@
 import json
 import device
+import utils
 
 def compare_by_consumption(devices, sol1, sol2):
     consumption_sol1 = 0
@@ -13,6 +14,8 @@ def compare_by_consumption(devices, sol1, sol2):
         CPU_used = devices[i].get_total_core() - sol2[i]
         consumption_sol2 = consumption_sol2 + devices[i].get_consumption_at_load(CPU_used)
 
+    #if consumption_sol1 < consumption_sol2:
+    #    print("Found worst solution with consumption " + str(consumption_sol1))
     # lower consumption better
     return consumption_sol1 - consumption_sol2
 
@@ -53,11 +56,14 @@ def compare_by_efficiency(devices, sol1, sol2):
 
 class Infrastructure:
     def __init__(self) -> None:
+        utils.remove_content_check_value_directory()
+
         with open('./infrastructure.json') as f:
             data = json.load(f)
 
         self.infra_name = data["name"]
         self.devices = []
+        self.number_of_solutions = 0
 
         for dt in data["devices"]:
             for i in range(int(dt["replicas"])):
@@ -75,6 +81,7 @@ class Infrastructure:
         remaining_core = []
         workload = []
         final_solution = []
+        self.number_of_solutions = 0
 
         for i in range(len(self.devices)):
             remaining_core.append(int(self.devices[i].get_total_core()))
@@ -89,15 +96,17 @@ class Infrastructure:
         self.recursive_schedule(remaining_core, workload, final_solution, 0, compare_function)
 
         str_ret = " -- Final Scheduling Report ---\n"
-        str_ret = str_ret + "Infrastructure name: " + self.infra_name + "\n"
-        str_ret = str_ret + "Number of devices: " + str(len(self.devices)) + "\n"
+        str_ret = str_ret + "Infrastructure name:    \t" + self.infra_name + "\n"
+        str_ret = str_ret + "Number of devices:      \t" + str(len(self.devices)) + "\n"
+        str_ret = str_ret + "Analyzed solutions:      \t" + str(self.number_of_solutions) + "\n"
         str_ret = str_ret + "Initial power consumption: \t" + str(self.compute_initial_consumption()) + " W" + "\n"
         str_ret = str_ret + "Final power consumption: \t" + str(round(self.compute_final_consumption(final_solution), 2)) + " W" + "\n"
         str_ret = str_ret + "Initial workload score: \t" + str(self.compute_initial_score()) + "\n"
         str_ret = str_ret + "Final workload score:   \t" + str(round(self.compute_final_score(final_solution), 2)) + "\n"
         str_ret = str_ret + "Devices: \n"
+
         for i in range(len(self.devices)):
-            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(self.devices[i].CPU_cores - final_solution[i]) + "/" + str(self.devices[i].CPU_cores) + "\n"
+            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(round(self.devices[i].convert_remaining_score_to_CPU_core(final_solution[i]), 1)) + "/" + str(round(float(self.devices[i].convert_remaining_score_to_CPU_core(0)), 1)) + "\n"
         
         print(str_ret)
     
@@ -107,12 +116,13 @@ class Infrastructure:
             if final_solution[0] == -1:
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
+                self.number_of_solutions = self.number_of_solutions + 1
                 return
 
             if compare_function(self.devices, remaining_core, final_solution) < 0:
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
-
+            self.number_of_solutions = self.number_of_solutions + 1
             return
 
         for i in range(len(remaining_core)):
@@ -135,19 +145,19 @@ class Infrastructure:
             str_ret = str_ret + "\t" + str(d) + "\n"
         return str_ret
 
-    def compute_final_consumption(self, remaining_resources):
-        consumption = 0.0
-        for i in range(len(remaining_resources)):
-            CPU_used = self.devices[i].get_total_core() - remaining_resources[i]
-            consumption = consumption + self.devices[i].get_consumption_at_load(CPU_used)
+    def compute_initial_score(self):
+        score = 0
 
-        return consumption
+        for d in self.devices:
+            score = score + d.compute_initial_score()
+
+        return round(score, 2)
 
     def compute_final_score(self, remaining_resources):
         score = 0.0
         for i in range(len(remaining_resources)):
-            CPU_used = self.devices[i].get_total_core() - remaining_resources[i]
-            score = score + self.devices[i].get_score_at_load(CPU_used)
+            CPU_used = self.devices[i].CPU_cores - remaining_resources[i]
+            score = score + CPU_used
 
         return score
 
@@ -159,10 +169,10 @@ class Infrastructure:
 
         return round(consumption, 2)
 
-    def compute_initial_score(self):
-        score = 0
+    def compute_final_consumption(self, remaining_resources):
+        consumption = 0.0
+        for i in range(len(remaining_resources)):
+            CPU_used = self.devices[i].CPU_cores - remaining_resources[i]
+            consumption = consumption + self.devices[i].get_consumption_at_load(CPU_used)
 
-        for d in self.devices:
-            score = score + d.compute_initial_score()
-
-        return round(score, 2)
+        return consumption
