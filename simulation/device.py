@@ -4,7 +4,8 @@ import utils
 class Device:
     def __init__(self, device) -> None:
         self.name = device["name"]
-        self.CPU_cores = float(device["CPU_cores"])
+        self.CPU_usage_baseline = float(device["CPU_usage_baseline"])
+        self.CPU_cores = float(device["CPU_cores"]) - self.CPU_usage_baseline
         self.load_to_move = []
 
         if device["load"]["need_to_move"] == "true":
@@ -29,32 +30,27 @@ class Device:
         return "- Dev name: " + self.name + "\tCPU cores: " + str(self.CPU_cores)
 
     def compute_initial_workload_consumption(self):
-        consumption = 0.0
+        load = self.CPU_usage_baseline
         if self.has_load_to_move:
             for l in self.load_to_move:
-                consumption = consumption + float(self.consumption["transfer_function"](l))
-        else:
-            consumption = self.consumption["transfer_function"](0)
+                load = load + l
 
-        return consumption
+        return self.consumption["transfer_function"](load)
 
     def compute_initial_score(self):
-        score = 0.0
+        score = self.CPU_usage_baseline
         if self.has_load_to_move:
             for l in self.load_to_move:
                 score = score + l
 
         return score
 
-    def get_total_core(self):
-        return self.CPU_cores
-
     def get_consumption_at_load(self, load):            
-        return float(self.consumption["transfer_function"](load))
+        return float(self.consumption["transfer_function"](load + self.CPU_usage_baseline))
 
     def get_score_at_load(self, load):            
-        return float(self.performance["transfer_function"](load))
+        return float(self.performance["transfer_function"](load + self.CPU_usage_baseline))
 
     def convert_remaining_score_to_CPU_core(self, remaining_score):
-        score = self.CPU_cores - remaining_score
+        score = self.CPU_cores + self.CPU_usage_baseline - remaining_score
         return float(self.performance["transfer_function"](score))

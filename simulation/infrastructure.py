@@ -1,17 +1,18 @@
 import json
 import device
 import utils
+import time
 
 def compare_by_consumption(devices, sol1, sol2):
     consumption_sol1 = 0
     consumption_sol2 = 0
 
     for i in range(len(sol1)):
-        CPU_used = devices[i].get_total_core() - sol1[i]
+        CPU_used = devices[i].CPU_cores - sol1[i]
         consumption_sol1 = consumption_sol1 + devices[i].get_consumption_at_load(CPU_used)
 
     for i in range(len(sol2)):
-        CPU_used = devices[i].get_total_core() - sol2[i]
+        CPU_used = devices[i].CPU_cores - sol2[i]
         consumption_sol2 = consumption_sol2 + devices[i].get_consumption_at_load(CPU_used)
 
     #if consumption_sol1 < consumption_sol2:
@@ -64,6 +65,7 @@ class Infrastructure:
         self.infra_name = data["name"]
         self.devices = []
         self.number_of_solutions = 0
+        self.total_number_of_solutions = 0
 
         for dt in data["devices"]:
             for i in range(int(dt["replicas"])):
@@ -71,6 +73,7 @@ class Infrastructure:
                 dev_json["name"] = dt["name"] + "-" + str(i)
                 dev_json["load"] = dt["load"]
                 dev_json["CPU_cores"] = dt["CPU_cores"]
+                dev_json["CPU_usage_baseline"] = dt["CPU_usage_baseline"]
                 dev_json["consumption_details"] = dt["consumption_details"]
                 dev_json["performance_details"] = dt["performance_details"]
 
@@ -82,9 +85,10 @@ class Infrastructure:
         workload = []
         final_solution = []
         self.number_of_solutions = 0
+        start_time = time.time()
 
         for i in range(len(self.devices)):
-            remaining_core.append(int(self.devices[i].get_total_core()))
+            remaining_core.append(int(self.devices[i].CPU_cores))
             final_solution.append(-1)
             
 
@@ -93,12 +97,15 @@ class Infrastructure:
                 for l in d.load_to_move:
                     workload.append(int(l))
 
+        self.total_number_of_solutions = len(self.devices) ** len(workload)
+
         self.recursive_schedule(remaining_core, workload, final_solution, 0, compare_function)
 
         str_ret = " -- Final Scheduling Report ---\n"
         str_ret = str_ret + "Infrastructure name:    \t" + self.infra_name + "\n"
         str_ret = str_ret + "Number of devices:      \t" + str(len(self.devices)) + "\n"
-        str_ret = str_ret + "Analyzed solutions:      \t" + str(self.number_of_solutions) + "\n"
+        str_ret = str_ret + "Analyzed solutions:      \t" + str(self.number_of_solutions) + "/" + str(self.total_number_of_solutions) + " (lower result may derive from pruning of unfeasible solutions)" +  "\n"
+        str_ret = str_ret + "Simulation time:        \t" + str(int(time.time() - start_time)) + " s\n"
         str_ret = str_ret + "Initial power consumption: \t" + str(self.compute_initial_consumption()) + " W" + "\n"
         str_ret = str_ret + "Final power consumption: \t" + str(round(self.compute_final_consumption(final_solution), 2)) + " W" + "\n"
         str_ret = str_ret + "Initial workload score: \t" + str(self.compute_initial_score()) + "\n"
@@ -106,7 +113,7 @@ class Infrastructure:
         str_ret = str_ret + "Devices: \n"
 
         for i in range(len(self.devices)):
-            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(round(self.devices[i].convert_remaining_score_to_CPU_core(final_solution[i]), 1)) + "/" + str(round(float(self.devices[i].convert_remaining_score_to_CPU_core(0)), 1)) + "\n"
+            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(round(self.devices[i].convert_remaining_score_to_CPU_core(final_solution[i]), 3)) + "/" + str(round(float(self.devices[i].convert_remaining_score_to_CPU_core(0)), 3)) + "\n"
         
         print(str_ret)
     
@@ -156,7 +163,7 @@ class Infrastructure:
     def compute_final_score(self, remaining_resources):
         score = 0.0
         for i in range(len(remaining_resources)):
-            CPU_used = self.devices[i].CPU_cores - remaining_resources[i]
+            CPU_used = self.devices[i].CPU_cores + self.devices[i].CPU_usage_baseline  - remaining_resources[i]
             score = score + CPU_used
 
         return score
