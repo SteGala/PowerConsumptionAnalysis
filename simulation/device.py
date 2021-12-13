@@ -54,3 +54,10 @@ class Device:
     def convert_remaining_score_to_CPU_core(self, remaining_score):
         score = self.CPU_cores + self.CPU_usage_baseline - remaining_score
         return float(self.performance["transfer_function"](score))
+
+    def check_same_device_type(self, dev2):
+        if self.has_load_to_move and dev2.has_load_to_move:
+            if self.load_to_move == dev2.load_to_move:
+                if self.name.split('-')[0] == dev2.name.split('-')[0]:
+                    return True
+        return False

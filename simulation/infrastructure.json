@@ -16,7 +16,7 @@
         },
         {
             "name": "desktop",
-            "replicas": "5",
+            "replicas": "4",
             "CPU_cores": "8148.73",
             "CPU_usage_baseline": "1749.09",
             "load": {
