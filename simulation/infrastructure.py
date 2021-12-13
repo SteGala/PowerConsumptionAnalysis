@@ -133,9 +133,9 @@ class Infrastructure:
             return
 
         for i in range(len(remaining_core)):
-            if i > 0 and self.devices[i].check_same_device_type(self.devices[i-1]):
+            if id == 0 and i > 0 and self.devices[i].check_same_device_type(self.devices[i-1]):
                 continue
-                
+            
             if workload[id] <= remaining_core[i]:
                 remaining_core[i] = remaining_core[i] - workload[id]
                 self.recursive_schedule(remaining_core, workload, final_solution, id+1, compare_function)
