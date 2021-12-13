@@ -7,6 +7,7 @@ class Device:
         self.CPU_usage_baseline = float(device["CPU_usage_baseline"])
         self.CPU_cores = float(device["CPU_cores"]) - self.CPU_usage_baseline
         self.load_to_move = []
+        self.device_type = device["device_type"]
 
         if device["load"]["need_to_move"] == "true":
             self.has_load_to_move = True
@@ -56,8 +57,6 @@ class Device:
         return float(self.performance["transfer_function"](score))
 
     def check_same_device_type(self, dev2):
-        if self.has_load_to_move and dev2.has_load_to_move:
-            if self.load_to_move == dev2.load_to_move:
-                if self.name.split('-')[0] == dev2.name.split('-')[0]:
-                    return True
+        if self.device_type == dev2.device_type:
+            return True
         return False

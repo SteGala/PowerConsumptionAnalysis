@@ -66,19 +66,22 @@ class Infrastructure:
         self.devices = []
         self.number_of_solutions = 0
         self.total_number_of_solutions = 0
+        device_type = 0
 
         for dt in data["devices"]:
             for i in range(int(dt["replicas"])):
                 dev_json = {}
-                dev_json["name"] = dt["name"] + "-" + str(i)
+                dev_json["name"] = dt["name"] + "-#" + str(i)
                 dev_json["load"] = dt["load"]
                 dev_json["CPU_cores"] = dt["CPU_cores"]
                 dev_json["CPU_usage_baseline"] = dt["CPU_usage_baseline"]
                 dev_json["consumption_details"] = dt["consumption_details"]
                 dev_json["performance_details"] = dt["performance_details"]
+                dev_json["device_type"] = device_type
 
                 dev = device.Device(dev_json)
                 self.devices.append(dev)
+            device_type = device_type + 1
 
     def schedule_wokloads(self, compare_function):
         remaining_core = []
@@ -118,6 +121,7 @@ class Infrastructure:
         print(str_ret)
     
     def recursive_schedule(self, remaining_core, workload, final_solution, id, compare_function):
+        
         if id == len(workload):
             # final step of the recursion
             if final_solution[0] == -1:

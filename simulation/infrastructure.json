@@ -4,12 +4,12 @@
     [
         {
             "name": "laptop",
-            "replicas": "2",
+            "replicas": "3",
             "CPU_cores": "5822.35",
             "CPU_usage_baseline": "1566.70",
             "load": {
                 "need_to_move": "true",
-                "load_to_move": [1000, 500, 1000]
+                "load_to_move": [1000, 1500]
             },          
             "consumption_details": "./example_consumption/laptop_consumption.json",
             "performance_details": "./example_performance/laptop_performance.json"
