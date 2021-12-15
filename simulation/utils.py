@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, shutil
-import time
+import pandas
 
 def generate_continous_function_from_discrete_data(x_val, y_val, device_name, y_label):
     file_name = "./check_values/" + device_name + "-" + y_label + ".png"
@@ -56,3 +56,27 @@ def create_report_directory(report_path):
         exit(-1)
     else:
         print ("Successfully created the directory %s " % report_path)
+
+def summarize_reports(N_THREAD, report_path):
+    consumption_report = pandas.DataFrame()
+    score_report = pandas.DataFrame()
+    CPU_usage_report = pandas.DataFrame()
+
+    for i in range(N_THREAD):
+        consumption = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/consumption.csv")
+        score = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/score.csv")
+        CPU_usage = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/absolute_CPU_usage.csv")
+
+        consumption_report["date"] = consumption['date']
+        score_report["date"] = score["date"]
+        CPU_usage_report["date"] = CPU_usage["date"]
+        consumption_report["infrastructure" + str(i)] = consumption.sum(axis=1)
+        score_report["infrastructure" + str(i)] = score.sum(axis=1)
+        CPU_usage_report["infrastructure" + str(i)] = CPU_usage.sum(axis=1)
+
+    consumption_report.to_csv(report_path + '/overall_infrastructure_consumption.csv', index=None)
+    score_report.to_csv(report_path + '/overall_infrastructure_score.csv', index=None)
+    CPU_usage_report.to_csv(report_path + '/overall_infrastructure_CPU_usage.csv', index=None)
+
+
+    '/absolute_CPU_usage.csv'

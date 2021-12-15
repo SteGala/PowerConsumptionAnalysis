@@ -97,30 +97,115 @@ class Infrastructure(Thread):
             device_type = device_type + 1
 
     def run(self):
+
+        final_solution_continous = self.schedule_continous_workloads()
+
+        scheduling_solution = self.schedule_variable_workload(final_solution_continous)
+        
+        self.generate_report(scheduling_solution)
+
+    def schedule_continous_workloads(self):
         remaining_core = []
-        workload = []
-        final_solution = []
+        constant_workload = []
+        final_solution_continous = []
         self.number_of_solutions = 0
-        start_time = time.time()
 
         for i in range(len(self.devices)):
             remaining_core.append(int(self.devices[i].CPU_cores))
-            final_solution.append(-1)
+            final_solution_continous.append(-1)
             
 
         for d in self.devices:
             if d.has_constant_load_to_move:
                 for l in d.constant_load_to_move:
-                    workload.append(int(l))
+                    constant_workload.append(int(l))
 
-        self.total_number_of_solutions = len(self.devices) ** len(workload)
+        self.total_number_of_solutions = len(self.devices) ** len(constant_workload)
 
         # determine the scheduling baseline with continous worloads
-        self.recursive_schedule(remaining_core, workload, final_solution, 0)
+        self.recursive_schedule_continous_load(remaining_core, constant_workload, final_solution_continous, 0)
+        return final_solution_continous
 
-        self.generate_report(final_solution)
+    def schedule_variable_workload(self, final_solution_continous):
+        variable_workloads = []
+        for d in self.devices:
+            if d.has_variable_load_to_move:
+                for l in d.variable_load_to_move:
+                    l["workload_scheduled_on_device"] = -1
+                    variable_workloads.append(l)
+
+        sorted_varialble_workloads = sorted(variable_workloads, key=lambda d: datetime.datetime.strptime(d["start"], "%Y-%m-%d %H:%M:%S"))
+
+        scheduling_solution = []
+        delta = datetime.timedelta(minutes=1)
+        start_date = self.start_simulation
+        end_date = self.end_simulation
+        for i in range(len(self.devices)):
+            scheduling_solution.append({})
+            start_date = self.start_simulation
+            end_date = self.end_simulation
+            while start_date <= end_date:
+                scheduling_solution[i][str(start_date)] = final_solution_continous[i]
+                start_date += delta
+
+        start_date = self.start_simulation
+        end_date = self.end_simulation
+        while start_date <= end_date:
+            variable_workload_to_schedule = []
+            final_solution_variable = []
+            for i in range(len(self.devices)):
+                final_solution_variable.append(-1)
+
+            workload_placement = []
+            final_workload_placement = []
+
+            for wl in sorted_varialble_workloads:
+                if datetime.datetime.strptime(wl["start"], "%Y-%m-%d %H:%M:%S") == start_date:
+                    variable_workload_to_schedule.append(wl)
+
+            for i in range(len(variable_workload_to_schedule)):
+                workload_placement.append(-1)
+                final_workload_placement.append(-1)
+            
+            self.recursive_schedule_variable_load(final_solution_continous, variable_workload_to_schedule, 0, final_solution_variable, workload_placement, final_workload_placement)
+            #print(variable_workload_to_schedule)
+
+            for i in range(len(variable_workload_to_schedule)):
+                start = datetime.datetime.strptime(variable_workload_to_schedule[i]["start"], "%Y-%m-%d %H:%M:%S")
+                end = datetime.datetime.strptime(variable_workload_to_schedule[i]["end"], "%Y-%m-%d %H:%M:%S")
+                while start <= end:
+                    scheduling_solution[final_workload_placement[i]][str(start)] -= float(variable_workload_to_schedule[i]["load"])
+                    start += delta
+
+            start_date += delta
+        return scheduling_solution
+
+    def recursive_schedule_variable_load(self, remaining_core, workloads, id, final_solution, workload_placement, final_workload_placement):
+        if id == len(workloads):
+            if final_solution[0] == -1:
+                for i in range(len(final_solution)):
+                    final_solution[i] = remaining_core[i]
+                for i in range(len(workload_placement)):
+                    final_workload_placement[i] = workload_placement[i]
+                return
+
+            if self.optimization_function(self.devices, remaining_core, final_solution) < 0:
+                for i in range(len(final_solution)):
+                    final_solution[i] = remaining_core[i]
+                for i in range(len(workload_placement)):
+                    final_workload_placement[i] = workload_placement[i]
+            return
+
+        for i in range(len(remaining_core)):
+            if float(workloads[id]["load"]) <= remaining_core[i]:
+                workload_placement[id] = i
+                remaining_core[i] = remaining_core[i] - float(workloads[id]["load"])
+                self.recursive_schedule_variable_load(remaining_core, workloads, id+1, final_solution, workload_placement, final_workload_placement)
+                remaining_core[i] = remaining_core[i] + float(workloads[id]["load"])
+                workload_placement[id] = -1
+
     
-    def recursive_schedule(self, remaining_core, workload, final_solution, id):
+    def recursive_schedule_continous_load(self, remaining_core, workload, final_solution, id):
         
         if id == len(workload):
             # final step of the recursion
@@ -142,7 +227,7 @@ class Infrastructure(Thread):
             
             if workload[id] <= remaining_core[i]:
                 remaining_core[i] = remaining_core[i] - workload[id]
-                self.recursive_schedule(remaining_core, workload, final_solution, id+1)
+                self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1)
                 remaining_core[i] = remaining_core[i] + workload[id]
  
         return
@@ -152,26 +237,50 @@ class Infrastructure(Thread):
         
         infrastructure_consumption = {}
         infrastructure_consumption["date"] = []
-        infrastructure_cpu_usage = {}
-        infrastructure_cpu_usage["date"] = []
+        infrastructure_cpu_usage_percentage = {}
+        infrastructure_cpu_usage_percentage["date"] = []
+        infrastructure_cpu_usage_absolute = {}
+        infrastructure_cpu_usage_absolute["date"] = []
+        infrastructure_score = {}
+        infrastructure_score["date"] = []
 
         for i in range(len(self.devices)):
             infrastructure_consumption[self.devices[i].name] = []
-            infrastructure_cpu_usage[self.devices[i].name] = []
+            infrastructure_score[self.devices[i].name] = []
+            infrastructure_cpu_usage_percentage[self.devices[i].name] = []
+            infrastructure_cpu_usage_absolute[self.devices[i].name] = []
 
         delta = datetime.timedelta(minutes=1)
         start_date = self.start_simulation
         end_date = self.end_simulation
         while start_date <= end_date:
-            print(start_date)
             infrastructure_consumption["date"].append(start_date)
+            infrastructure_cpu_usage_percentage["date"].append(start_date)
+            infrastructure_cpu_usage_absolute["date"].append(start_date)
+            infrastructure_score["date"].append(start_date)
+
+            partial_solution = []
             for i in range(len(self.devices)):
-                infrastructure_consumption[self.devices[i].name].append(round(self.devices[i].convert_remaining_score_to_consumption(final_solution[i]), 2))
+                partial_solution.append(final_solution[i][str(start_date)])
+
+            for i in range(len(self.devices)):
+                CPU_used = self.devices[i].convert_remaining_score_to_CPU_core(partial_solution[i])
+                CPU_total = self.devices[i].convert_remaining_score_to_CPU_core(0)
+                infrastructure_consumption[self.devices[i].name].append(round(self.devices[i].convert_remaining_score_to_consumption(partial_solution[i]), 2))
+                infrastructure_cpu_usage_percentage[self.devices[i].name].append(round((CPU_used/CPU_total)*100, 2))
+                infrastructure_cpu_usage_absolute[self.devices[i].name].append(round(CPU_used, 2))
+                infrastructure_score[self.devices[i].name].append(round(self.devices[i].CPU_cores + self.devices[i].CPU_usage_baseline - partial_solution[i], 2))
 
             start_date += delta
 
-        df = pd.DataFrame(infrastructure_consumption)
-        df.to_csv(self.report_folder + '/consumption.csv', index=None)
+        df_consumption = pd.DataFrame(infrastructure_consumption)
+        df_consumption.to_csv(self.report_folder + '/consumption.csv', index=None)
+        df_usage = pd.DataFrame(infrastructure_cpu_usage_percentage)
+        df_usage.to_csv(self.report_folder + '/percentual_CPU_usage.csv', index=None)
+        df_usage_absolute = pd.DataFrame(infrastructure_cpu_usage_absolute)
+        df_usage_absolute.to_csv(self.report_folder + '/absolute_CPU_usage.csv', index=None)
+        df_score = pd.DataFrame(infrastructure_score)
+        df_score.to_csv(self.report_folder + '/score.csv', index=None)
 
     def print_report(self, final_solution, start_time):
         str_ret = " -- Final Scheduling Report ---\n"

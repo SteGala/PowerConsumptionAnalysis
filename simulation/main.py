@@ -2,8 +2,9 @@ import infrastructure as infra
 import os
 import time
 import utils
+import pandas
 
-N_THREAD = 1
+N_THREAD = 2
 
 if __name__ == "__main__":
     report_path = "./reports-" + str(int(time.time()))
@@ -11,7 +12,7 @@ if __name__ == "__main__":
     infrastructures = []
 
     for i in range(N_THREAD):
-        infrastructure = infra.Infrastructure('./example_infrastructures/infrastructure.json', infra.compare_by_consumption, report_path)
+        infrastructure = infra.Infrastructure('./example_infrastructures/infrastructure' + str(i) + '.json', infra.compare_by_consumption, report_path)
         infrastructures.append(infrastructure)
 
     # Start all threads
@@ -22,10 +23,4 @@ if __name__ == "__main__":
     for x in infrastructures:
         x.join()
 
-    #print()
-    #print("Scheduling simulation optimized for execution score")
-    #infrastructure.schedule_wokloads(infra.compare_by_score)
-#
-    #print()
-    #print("Scheduling simulation optimized for efficiency")
-    #infrastructure.schedule_wokloads(infra.compare_by_efficiency)
+    utils.summarize_reports(N_THREAD, report_path)
