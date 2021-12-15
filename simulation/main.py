@@ -11,7 +11,7 @@ if __name__ == "__main__":
     infrastructures = []
 
     for i in range(N_THREAD):
-        infrastructure = infra.Infrastructure('./example_infrastructures/infrastructure.json', infra.compare_by_consumption)
+        infrastructure = infra.Infrastructure('./example_infrastructures/infrastructure.json', infra.compare_by_consumption, report_path)
         infrastructures.append(infrastructure)
 
     # Start all threads
