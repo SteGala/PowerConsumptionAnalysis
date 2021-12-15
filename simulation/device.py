@@ -6,13 +6,21 @@ class Device:
         self.name = device["name"]
         self.CPU_usage_baseline = float(device["CPU_usage_baseline"])
         self.CPU_cores = float(device["CPU_cores"]) - self.CPU_usage_baseline
-        self.load_to_move = []
+        self.constant_load_to_move = []
+        self.variable_load_to_move = []
+        self.device_type = device["device_type"]
 
-        if device["load"]["need_to_move"] == "true":
-            self.has_load_to_move = True
-            self.load_to_move = device["load"]["load_to_move"]
+        if device["constant_load"]["need_to_move"] == "true":
+            self.has_constant_load_to_move = True
+            self.constant_load_to_move = device["constant_load"]["load_to_move"]
         else:
-            self.has_load_to_move = False
+            self.has_constant_load_to_move = False
+
+        if device["variable_load"]["need_to_move"] == "true":
+            self.has_variable_load_to_move = True
+            self.variable_load_to_move = device["variable_load"]["load_to_move"]
+        else:
+            self.has_variable_load_to_move = False
 
         with open(device["consumption_details"]) as f:
             data_consumption = json.load(f)
@@ -31,16 +39,16 @@ class Device:
 
     def compute_initial_workload_consumption(self):
         load = self.CPU_usage_baseline
-        if self.has_load_to_move:
-            for l in self.load_to_move:
+        if self.has_constant_load_to_move:
+            for l in self.constant_load_to_move:
                 load = load + l
 
         return self.consumption["transfer_function"](load)
 
     def compute_initial_score(self):
         score = self.CPU_usage_baseline
-        if self.has_load_to_move:
-            for l in self.load_to_move:
+        if self.has_constant_load_to_move:
+            for l in self.constant_load_to_move:
                 score = score + l
 
         return score
@@ -54,3 +62,12 @@ class Device:
     def convert_remaining_score_to_CPU_core(self, remaining_score):
         score = self.CPU_cores + self.CPU_usage_baseline - remaining_score
         return float(self.performance["transfer_function"](score))
+
+    def convert_remaining_score_to_consumption(self, remaining_score):
+        score = self.CPU_cores + self.CPU_usage_baseline - remaining_score
+        return float(self.consumption["transfer_function"](score))
+
+    def check_same_device_type(self, dev2):
+        if self.device_type == dev2.device_type:
+            return True
+        return False

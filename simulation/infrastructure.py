@@ -2,6 +2,10 @@ import json
 import device
 import utils
 import time
+from threading import Thread
+import datetime
+import os
+import pandas as pd
 
 def compare_by_consumption(devices, sol1, sol2):
     consumption_sol1 = 0
@@ -55,32 +59,44 @@ def compare_by_efficiency(devices, sol1, sol2):
     return efficiency_sol2 - efficiency_sol1
 
 
-class Infrastructure:
-    def __init__(self) -> None:
+class Infrastructure(Thread):
+    def __init__(self, infra_file_name, optimization_function, directory) -> None:
         utils.remove_content_check_value_directory()
 
-        with open('./infrastructure.json') as f:
+        Thread.__init__(self)
+
+        with open(infra_file_name) as f:
             data = json.load(f)
 
         self.infra_name = data["name"]
+        self.infra_file_name = infra_file_name
+        self.directory = directory
+        self.report_folder = self.directory + "/" + self.infra_file_name.split("/")[len(self.infra_file_name.split("/"))-1].split(".")[0]
+        self.start_simulation = datetime.datetime.strptime(data["start_simulation"], "%Y-%m-%d %H:%M:%S")
+        self.end_simulation = datetime.datetime.strptime(data["end_simulation"], "%Y-%m-%d %H:%M:%S")
+        self.optimization_function = optimization_function
         self.devices = []
         self.number_of_solutions = 0
         self.total_number_of_solutions = 0
+        device_type = 0
 
         for dt in data["devices"]:
             for i in range(int(dt["replicas"])):
                 dev_json = {}
-                dev_json["name"] = dt["name"] + "-" + str(i)
-                dev_json["load"] = dt["load"]
+                dev_json["name"] = dt["name"] + "-#" + str(i)
+                dev_json["constant_load"] = dt["constant_load"]
+                dev_json["variable_load"] = dt["variable_load"]
                 dev_json["CPU_cores"] = dt["CPU_cores"]
                 dev_json["CPU_usage_baseline"] = dt["CPU_usage_baseline"]
                 dev_json["consumption_details"] = dt["consumption_details"]
                 dev_json["performance_details"] = dt["performance_details"]
+                dev_json["device_type"] = device_type
 
                 dev = device.Device(dev_json)
                 self.devices.append(dev)
+            device_type = device_type + 1
 
-    def schedule_wokloads(self, compare_function):
+    def run(self):
         remaining_core = []
         workload = []
         final_solution = []
@@ -93,14 +109,71 @@ class Infrastructure:
             
 
         for d in self.devices:
-            if d.has_load_to_move:
-                for l in d.load_to_move:
+            if d.has_constant_load_to_move:
+                for l in d.constant_load_to_move:
                     workload.append(int(l))
 
         self.total_number_of_solutions = len(self.devices) ** len(workload)
 
-        self.recursive_schedule(remaining_core, workload, final_solution, 0, compare_function)
+        # determine the scheduling baseline with continous worloads
+        self.recursive_schedule(remaining_core, workload, final_solution, 0)
 
+        self.generate_report(final_solution)
+    
+    def recursive_schedule(self, remaining_core, workload, final_solution, id):
+        
+        if id == len(workload):
+            # final step of the recursion
+            if final_solution[0] == -1:
+                for i in range(len(final_solution)):
+                    final_solution[i] = remaining_core[i]
+                self.number_of_solutions = self.number_of_solutions + 1
+                return
+
+            if self.optimization_function(self.devices, remaining_core, final_solution) < 0:
+                for i in range(len(final_solution)):
+                    final_solution[i] = remaining_core[i]
+            self.number_of_solutions = self.number_of_solutions + 1
+            return
+
+        for i in range(len(remaining_core)):
+            if id == 0 and i > 0 and self.devices[i].check_same_device_type(self.devices[i-1]):
+                continue
+            
+            if workload[id] <= remaining_core[i]:
+                remaining_core[i] = remaining_core[i] - workload[id]
+                self.recursive_schedule(remaining_core, workload, final_solution, id+1)
+                remaining_core[i] = remaining_core[i] + workload[id]
+ 
+        return
+
+    def generate_report(self, final_solution):
+        os.mkdir(self.report_folder)
+        
+        infrastructure_consumption = {}
+        infrastructure_consumption["date"] = []
+        infrastructure_cpu_usage = {}
+        infrastructure_cpu_usage["date"] = []
+
+        for i in range(len(self.devices)):
+            infrastructure_consumption[self.devices[i].name] = []
+            infrastructure_cpu_usage[self.devices[i].name] = []
+
+        delta = datetime.timedelta(minutes=1)
+        start_date = self.start_simulation
+        end_date = self.end_simulation
+        while start_date <= end_date:
+            print(start_date)
+            infrastructure_consumption["date"].append(start_date)
+            for i in range(len(self.devices)):
+                infrastructure_consumption[self.devices[i].name].append(round(self.devices[i].convert_remaining_score_to_consumption(final_solution[i]), 2))
+
+            start_date += delta
+
+        df = pd.DataFrame(infrastructure_consumption)
+        df.to_csv(self.report_folder + '/consumption.csv', index=None)
+
+    def print_report(self, final_solution, start_time):
         str_ret = " -- Final Scheduling Report ---\n"
         str_ret = str_ret + "Infrastructure name:    \t" + self.infra_name + "\n"
         str_ret = str_ret + "Number of devices:      \t" + str(len(self.devices)) + "\n"
@@ -116,33 +189,7 @@ class Infrastructure:
             str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(round(self.devices[i].convert_remaining_score_to_CPU_core(final_solution[i]), 3)) + "/" + str(round(float(self.devices[i].convert_remaining_score_to_CPU_core(0)), 3)) + "\n"
         
         print(str_ret)
-    
-    def recursive_schedule(self, remaining_core, workload, final_solution, id, compare_function):
-        if id == len(workload):
-            # final step of the recursion
-            if final_solution[0] == -1:
-                for i in range(len(final_solution)):
-                    final_solution[i] = remaining_core[i]
-                self.number_of_solutions = self.number_of_solutions + 1
-                return
-
-            if compare_function(self.devices, remaining_core, final_solution) < 0:
-                for i in range(len(final_solution)):
-                    final_solution[i] = remaining_core[i]
-            self.number_of_solutions = self.number_of_solutions + 1
-            return
-
-        for i in range(len(remaining_core)):
-            if workload[id] <= remaining_core[i]:
-                remaining_core[i] = remaining_core[i] - workload[id]
-                self.recursive_schedule(remaining_core, workload, final_solution, id+1, compare_function)
-                remaining_core[i] = remaining_core[i] + workload[id]
- 
-        return
         
-
-
-
     def __str__(self) -> str:
         str_ret = "Infrastructure name: " + self.infra_name + "\n"
         str_ret = str_ret + "Number of devices: " + str(len(self.devices)) + "\n"

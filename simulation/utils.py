@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, shutil
+import time
 
 def generate_continous_function_from_discrete_data(x_val, y_val, device_name, y_label):
     file_name = "./check_values/" + device_name + "-" + y_label + ".png"
@@ -46,3 +47,12 @@ def remove_content_check_value_directory():
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
             exit(-1)
+
+def create_report_directory(report_path):
+    try:
+        os.mkdir(report_path)
+    except OSError:
+        print ("Creation of the directory %s failed" % report_path)
+        exit(-1)
+    else:
+        print ("Successfully created the directory %s " % report_path)
