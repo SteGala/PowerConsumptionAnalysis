@@ -115,34 +115,10 @@ class Infrastructure(Thread):
 
         self.total_number_of_solutions = len(self.devices) ** len(workload)
 
+        # determine the scheduling baseline with continous worloads
         self.recursive_schedule(remaining_core, workload, final_solution, 0)
 
-        os.mkdir(self.report_folder)
-        
-        infrastructure_consumption = {}
-        infrastructure_consumption["date"] = []
-        infrastructure_cpu_usage = {}
-        infrastructure_cpu_usage["date"] = []
-
-        for i in range(len(self.devices)):
-            infrastructure_consumption[self.devices[i].name] = []
-            infrastructure_cpu_usage[self.devices[i].name] = []
-
-        delta = datetime.timedelta(minutes=2)
-        start_date = self.start_simulation
-        end_date = self.end_simulation
-        while start_date <= end_date:
-            infrastructure_consumption["date"] = start_date.strftime("%Y-%m-%d %H:%M:%S")
-            for i in range(len(self.devices)):
-                infrastructure_consumption[self.devices[i].name].append(round(self.devices[i].convert_remaining_score_to_consumption(final_solution[i]), 2))
-
-            start_date += delta
-
-        df = pd.DataFrame(infrastructure_consumption)
-
-        df.to_csv(self.report_folder + '/consumption.csv', index=None)
-
-        #print(infrastructure_consumption)
+        self.generate_report(final_solution)
     
     def recursive_schedule(self, remaining_core, workload, final_solution, id):
         
@@ -170,6 +146,32 @@ class Infrastructure(Thread):
                 remaining_core[i] = remaining_core[i] + workload[id]
  
         return
+
+    def generate_report(self, final_solution):
+        os.mkdir(self.report_folder)
+        
+        infrastructure_consumption = {}
+        infrastructure_consumption["date"] = []
+        infrastructure_cpu_usage = {}
+        infrastructure_cpu_usage["date"] = []
+
+        for i in range(len(self.devices)):
+            infrastructure_consumption[self.devices[i].name] = []
+            infrastructure_cpu_usage[self.devices[i].name] = []
+
+        delta = datetime.timedelta(minutes=1)
+        start_date = self.start_simulation
+        end_date = self.end_simulation
+        while start_date <= end_date:
+            print(start_date)
+            infrastructure_consumption["date"].append(start_date)
+            for i in range(len(self.devices)):
+                infrastructure_consumption[self.devices[i].name].append(round(self.devices[i].convert_remaining_score_to_consumption(final_solution[i]), 2))
+
+            start_date += delta
+
+        df = pd.DataFrame(infrastructure_consumption)
+        df.to_csv(self.report_folder + '/consumption.csv', index=None)
 
     def print_report(self, final_solution, start_time):
         str_ret = " -- Final Scheduling Report ---\n"
