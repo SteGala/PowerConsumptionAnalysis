@@ -2,6 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os, shutil
 import pandas
+from enum import Enum
+
+class SchedulingType(Enum):
+    ORIGINAL = 1
+    OPTIMIZED = 2
 
 def generate_continous_function_from_discrete_data(x_val, y_val, device_name, y_label):
     file_name = "./check_values/" + device_name + "-" + y_label + ".png"
@@ -57,26 +62,61 @@ def create_report_directory(report_path):
     else:
         print ("Successfully created the directory %s " % report_path)
 
-def summarize_reports(N_THREAD, report_path):
+def summarize_reports(N_INFRA, report_path):
     consumption_report = pandas.DataFrame()
     score_report = pandas.DataFrame()
     CPU_usage_report = pandas.DataFrame()
 
-    for i in range(N_THREAD):
-        consumption = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/consumption.csv")
-        score = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/score.csv")
-        CPU_usage = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/absolute_CPU_usage.csv")
+    for i in range(N_INFRA):
+        consumption_optimized = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/consumption-" + SchedulingType.OPTIMIZED.name + ".csv")
+        ax = consumption_optimized.plot()
+        ax.legend(loc=2)
+        ax.set_xlabel("Time (m)")
+        ax.set_ylabel("Consumption (W)")
+        plt.savefig(report_path + "/infrastructure" + str(i) + "/consumption_optimized.png")
+        score_optimized = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/score-" + SchedulingType.OPTIMIZED.name + ".csv")
+        ax = score_optimized.plot()
+        ax.legend(loc=2)
+        ax.set_xlabel("Time (m)")
+        ax.set_ylabel("Passmark Score")
+        plt.savefig(report_path + "/infrastructure" + str(i) + "/score_optimized.png")
+        CPU_usage_optimized = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/absolute_CPU_usage-" + SchedulingType.OPTIMIZED.name + ".csv")
+        ax = CPU_usage_optimized.plot()
+        ax.legend(loc=2)
+        ax.set_xlabel("Time (m)")
+        ax.set_ylabel("CPU Cores")
+        plt.savefig(report_path + "/infrastructure" + str(i) + "/cores_optimized.png")
+        consumption_original = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/consumption-" + SchedulingType.ORIGINAL.name + ".csv")
+        ax = consumption_original.plot()
+        ax.legend(loc=2)
+        ax.set_xlabel("Time (m)")
+        ax.set_ylabel("Consumption (W)")
+        plt.savefig(report_path + "/infrastructure" + str(i) + "/consumption_original.png")
+        score_original = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/score-" + SchedulingType.ORIGINAL.name + ".csv")
+        ax = score_original.plot()
+        ax.legend(loc=2)
+        ax.set_xlabel("Time (m)")
+        ax.set_ylabel("Passmark Score")
+        plt.savefig(report_path + "/infrastructure" + str(i) + "/score_original.png")
+        CPU_usage_original = pandas.read_csv(report_path + "/infrastructure" + str(i) + "/absolute_CPU_usage-" + SchedulingType.ORIGINAL.name + ".csv")
+        ax = CPU_usage_original.plot()
+        ax.legend(loc=2)
+        ax.set_xlabel("Time (m)")
+        ax.set_ylabel("CPU Cores")
+        plt.savefig(report_path + "/infrastructure" + str(i) + "/cores_original.png")
 
-        consumption_report["date"] = consumption['date']
-        score_report["date"] = score["date"]
-        CPU_usage_report["date"] = CPU_usage["date"]
-        consumption_report["infrastructure" + str(i)] = consumption.sum(axis=1)
-        score_report["infrastructure" + str(i)] = score.sum(axis=1)
-        CPU_usage_report["infrastructure" + str(i)] = CPU_usage.sum(axis=1)
+        
+        consumption_report["date"] = consumption_optimized['date']
+        score_report["date"] = score_optimized["date"]
+        CPU_usage_report["date"] = CPU_usage_optimized["date"]
+        consumption_report["infrastructure" + str(i) + "-" + SchedulingType.OPTIMIZED.name] = consumption_optimized.sum(axis=1, numeric_only=True)
+        score_report["infrastructure" + str(i) + "-" + SchedulingType.OPTIMIZED.name] = score_optimized.sum(axis=1, numeric_only=True)
+        CPU_usage_report["infrastructure" + str(i) + "-" + SchedulingType.OPTIMIZED.name] = CPU_usage_optimized.sum(axis=1, numeric_only=True)
+        consumption_report["infrastructure" + str(i) + "-" + SchedulingType.ORIGINAL.name] = consumption_original.sum(axis=1, numeric_only=True)
+        score_report["infrastructure" + str(i) + "-" + SchedulingType.ORIGINAL.name] = score_original.sum(axis=1, numeric_only=True)
+        CPU_usage_report["infrastructure" + str(i) + "-" + SchedulingType.ORIGINAL.name] = CPU_usage_original.sum(axis=1, numeric_only=True)
 
     consumption_report.to_csv(report_path + '/overall_infrastructure_consumption.csv', index=None)
     score_report.to_csv(report_path + '/overall_infrastructure_score.csv', index=None)
     CPU_usage_report.to_csv(report_path + '/overall_infrastructure_CPU_usage.csv', index=None)
 
-
-    '/absolute_CPU_usage.csv'

@@ -2,16 +2,15 @@ import infrastructure as infra
 import os
 import time
 import utils
-import pandas
 
-N_THREAD = 2
+N_INFRA = 1
 
 if __name__ == "__main__":
     report_path = "./reports-" + str(int(time.time()))
     utils.create_report_directory(report_path)
     infrastructures = []
 
-    for i in range(N_THREAD):
+    for i in range(N_INFRA):
         infrastructure = infra.Infrastructure('./example_infrastructures/infrastructure' + str(i) + '.json', infra.compare_by_consumption, report_path)
         infrastructures.append(infrastructure)
 
@@ -23,4 +22,4 @@ if __name__ == "__main__":
     for x in infrastructures:
         x.join()
 
-    utils.summarize_reports(N_THREAD, report_path)
+    utils.summarize_reports(N_INFRA, report_path)

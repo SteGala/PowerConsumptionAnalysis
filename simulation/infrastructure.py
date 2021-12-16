@@ -98,11 +98,40 @@ class Infrastructure(Thread):
 
     def run(self):
 
-        final_solution_continous = self.schedule_continous_workloads()
+        original_placement = self.compute_original_placement()
+        self.generate_report(original_placement, utils.SchedulingType.ORIGINAL)
 
-        scheduling_solution = self.schedule_variable_workload(final_solution_continous)
-        
-        self.generate_report(scheduling_solution)
+        final_solution_continous = self.schedule_continous_workloads()
+        scheduling_solution = self.schedule_variable_workload(final_solution_continous) 
+        self.generate_report(scheduling_solution, utils.SchedulingType.OPTIMIZED)
+
+    def compute_original_placement(self):
+        original_placement = []
+
+        delta = datetime.timedelta(minutes=1)
+        start_date = self.start_simulation
+        end_date = self.end_simulation
+        for i in range(len(self.devices)):
+            original_placement.append({})
+            start_date = self.start_simulation
+            end_date = self.end_simulation
+            available_core = self.devices[i].CPU_cores
+            if self.devices[i].has_constant_load_to_move:
+                for l in self.devices[i].constant_load_to_move:
+                    available_core -= l
+            while start_date <= end_date:
+                delta_core = 0
+                if self.devices[i].has_variable_load_to_move:
+                    for l in self.devices[i].variable_load_to_move:
+                        if datetime.datetime.strptime(l["start"], "%Y-%m-%d %H:%M:%S") <= start_date and datetime.datetime.strptime(l["end"], "%Y-%m-%d %H:%M:%S") >= start_date:
+                            delta_core += float(l["load"])
+                if available_core - delta_core < 0:
+                    print("Infrastructure " + self.infra_name + " require more then the available core for " + self.devices[i].name)
+                    exit(-1)
+                original_placement[i][str(start_date)] = available_core - delta_core
+                start_date += delta
+
+        return original_placement
 
     def schedule_continous_workloads(self):
         remaining_core = []
@@ -232,8 +261,9 @@ class Infrastructure(Thread):
  
         return
 
-    def generate_report(self, final_solution):
-        os.mkdir(self.report_folder)
+    def generate_report(self, final_solution, type):
+        if not os.path.exists(self.report_folder):
+            os.mkdir(self.report_folder)
         
         infrastructure_consumption = {}
         infrastructure_consumption["date"] = []
@@ -274,13 +304,13 @@ class Infrastructure(Thread):
             start_date += delta
 
         df_consumption = pd.DataFrame(infrastructure_consumption)
-        df_consumption.to_csv(self.report_folder + '/consumption.csv', index=None)
+        df_consumption.to_csv(self.report_folder + '/consumption-' + type.name + '.csv', index=None)
         df_usage = pd.DataFrame(infrastructure_cpu_usage_percentage)
-        df_usage.to_csv(self.report_folder + '/percentual_CPU_usage.csv', index=None)
+        df_usage.to_csv(self.report_folder + '/percentual_CPU_usage-' + type.name + '.csv', index=None)
         df_usage_absolute = pd.DataFrame(infrastructure_cpu_usage_absolute)
-        df_usage_absolute.to_csv(self.report_folder + '/absolute_CPU_usage.csv', index=None)
+        df_usage_absolute.to_csv(self.report_folder + '/absolute_CPU_usage-' + type.name + '.csv', index=None)
         df_score = pd.DataFrame(infrastructure_score)
-        df_score.to_csv(self.report_folder + '/score.csv', index=None)
+        df_score.to_csv(self.report_folder + '/score-' + type.name + '.csv', index=None)
 
     def print_report(self, final_solution, start_time):
         str_ret = " -- Final Scheduling Report ---\n"
