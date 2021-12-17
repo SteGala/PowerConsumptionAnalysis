@@ -192,19 +192,22 @@ class Infrastructure(Thread):
                 if datetime.datetime.strptime(wl["start"], "%Y-%m-%d %H:%M:%S") == start_date:
                     variable_workload_to_schedule.append(wl)
 
-            for i in range(len(variable_workload_to_schedule)):
-                workload_placement.append(-1)
-                final_workload_placement.append(-1)
-            
-            self.recursive_schedule_variable_load(final_solution_continous, variable_workload_to_schedule, 0, final_solution_variable, workload_placement, final_workload_placement)
-            #print(variable_workload_to_schedule)
+            if len(variable_workload_to_schedule) > 0: 
+                for i in range(len(variable_workload_to_schedule)):
+                    workload_placement.append(-1)
+                    final_workload_placement.append(-1)
 
-            for i in range(len(variable_workload_to_schedule)):
-                start = datetime.datetime.strptime(variable_workload_to_schedule[i]["start"], "%Y-%m-%d %H:%M:%S")
-                end = datetime.datetime.strptime(variable_workload_to_schedule[i]["end"], "%Y-%m-%d %H:%M:%S")
-                while start <= end:
-                    scheduling_solution[final_workload_placement[i]][str(start)] -= float(variable_workload_to_schedule[i]["load"])
-                    start += delta
+                for i in range(len(final_solution_continous)):
+                    final_solution_continous[i] = scheduling_solution[i][str(start_date)]
+                    
+                self.recursive_schedule_variable_load(final_solution_continous, variable_workload_to_schedule, 0, final_solution_variable, workload_placement, final_workload_placement)
+
+                for i in range(len(variable_workload_to_schedule)):
+                    start = datetime.datetime.strptime(variable_workload_to_schedule[i]["start"], "%Y-%m-%d %H:%M:%S")
+                    end = datetime.datetime.strptime(variable_workload_to_schedule[i]["end"], "%Y-%m-%d %H:%M:%S")
+                    while start <= end:
+                        scheduling_solution[final_workload_placement[i]][str(start)] -= float(variable_workload_to_schedule[i]["load"])
+                        start += delta
 
             start_date += delta
         return scheduling_solution
