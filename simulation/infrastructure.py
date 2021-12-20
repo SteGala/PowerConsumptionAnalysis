@@ -6,6 +6,7 @@ from threading import Thread
 import datetime
 import os
 import pandas as pd
+import sys
 
 def compare_by_consumption(devices, sol1, sol2):
     consumption_sol1 = 0
@@ -141,6 +142,7 @@ class Infrastructure(Thread):
         constant_workload = []
         final_solution_continous = []
         self.number_of_solutions = 0
+        consumption = [0, sys.maxsize]
 
         for i in range(len(self.devices)):
             remaining_core.append(int(self.devices[i].CPU_cores))
@@ -155,7 +157,7 @@ class Infrastructure(Thread):
         self.total_number_of_solutions = len(self.devices) ** len(constant_workload)
 
         # determine the scheduling baseline with continous worloads
-        self.recursive_schedule_continous_load(remaining_core, constant_workload, final_solution_continous, 0)
+        self.recursive_schedule_continous_load(remaining_core, constant_workload, final_solution_continous, 0, consumption)
         return final_solution_continous
 
     def schedule_variable_workload(self, final_solution_continous):
@@ -240,17 +242,20 @@ class Infrastructure(Thread):
                 workload_placement[id] = -1
 
     
-    def recursive_schedule_continous_load(self, remaining_core, workload, final_solution, id):
+    def recursive_schedule_continous_load(self, remaining_core, workload, final_solution, id, consumption):
         
         if id == len(workload):
             # final step of the recursion
             if final_solution[0] == -1:
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
+                    CPU_used = self.devices[i].CPU_cores - remaining_core[i]
+                    consumption[1] += self.devices[i].get_consumption_at_load(CPU_used)
                 self.number_of_solutions = self.number_of_solutions + 1
                 return
 
-            if self.optimization_function(self.devices, remaining_core, final_solution) < 0:
+            if consumption[0] < consumption[1]:
+                consumption[1] = consumption[0]
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
             self.number_of_solutions = self.number_of_solutions + 1
@@ -264,13 +269,17 @@ class Infrastructure(Thread):
                     skip_this_device = True
                     break
             
-            if skip_this_device or self.optimization_function(self.devices, remaining_core, final_solution) > 0:
+            if skip_this_device:
                 continue
             
             if workload[id] <= remaining_core[i]:
                 remaining_core[i] = remaining_core[i] - workload[id]
-                self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1)
+                CPU_used = self.devices[i].CPU_cores - remaining_core[i]
+                consumption[0] += self.devices[i].get_consumption_at_load(CPU_used)
+                #if consumption[0] < consumption[1]:
+                self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1, consumption)
                 remaining_core[i] = remaining_core[i] + workload[id]
+                consumption[0] -= self.devices[i].get_consumption_at_load(CPU_used)
  
         return
 
