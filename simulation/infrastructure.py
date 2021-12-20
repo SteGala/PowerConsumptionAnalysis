@@ -261,6 +261,7 @@ class Infrastructure(Thread):
             for j in range(i):
                 if self.devices[i].check_same_device_type(self.devices[j]) and remaining_core[i] == remaining_core[j]:
                     skip_this_device = True
+                    break
             
             if skip_this_device:
                 continue

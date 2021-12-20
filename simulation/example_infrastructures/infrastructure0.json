@@ -6,7 +6,7 @@
     [
         {
             "name": "laptop",
-            "replicas": "4",
+            "replicas": "3",
             "CPU_cores": "5822.35",
             "CPU_usage_baseline": "1566.70",
             "constant_load": {
