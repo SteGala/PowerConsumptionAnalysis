@@ -11,6 +11,9 @@ def compare_by_consumption(devices, sol1, sol2):
     consumption_sol1 = 0
     consumption_sol2 = 0
 
+    if sol2[0] == -1:
+        return -1
+
     for i in range(len(sol1)):
         CPU_used = devices[i].CPU_cores - sol1[i]
         consumption_sol1 = consumption_sol1 + devices[i].get_consumption_at_load(CPU_used)
@@ -254,16 +257,14 @@ class Infrastructure(Thread):
             return
 
         for i in range(len(remaining_core)):
-            #if id == 0 and i > 0 and self.devices[i].check_same_device_type(self.devices[i-1]):
-            #    continue
-
             skip_this_device = False
+            
             for j in range(i):
                 if self.devices[i].check_same_device_type(self.devices[j]) and remaining_core[i] == remaining_core[j]:
                     skip_this_device = True
                     break
             
-            if skip_this_device:
+            if skip_this_device or self.optimization_function(self.devices, remaining_core, final_solution) > 0:
                 continue
             
             if workload[id] <= remaining_core[i]:
