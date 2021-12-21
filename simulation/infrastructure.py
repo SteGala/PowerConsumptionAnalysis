@@ -259,16 +259,24 @@ class Infrastructure(Thread):
                     final_solution[i] = remaining_core[i]
             return
 
-        for i in range(start, end):
-            skip_this_device = False
-            
-            for j in range(start, i):
-                if self.devices[i].check_same_device_type(self.devices[j]) and remaining_core[i] == remaining_core[j]:
-                    skip_this_device = True
-                    break
-            
-            if skip_this_device:
+        available_devices = []
+        available_devices.append(start)
+        for i in range(start +1, end):
+            if self.devices[i].check_same_device_type(self.devices[i-1]) and remaining_core[i] == remaining_core[i-1]:
                 continue
+            else:
+                available_devices.append(i)
+
+        for i in available_devices:
+            #skip_this_device = False
+            
+            #for j in range(start, i):
+            #    if self.devices[i].check_same_device_type(self.devices[j]) and remaining_core[i] == remaining_core[j]:
+            #        skip_this_device = True
+            #        break
+            
+            #if skip_this_device:
+            #    continue
             
             if workload[id] <= remaining_core[i]:
                 remaining_core[i] = remaining_core[i] - workload[id]
