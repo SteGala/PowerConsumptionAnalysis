@@ -247,21 +247,16 @@ class Infrastructure(Thread):
     def recursive_schedule_continous_load(self, remaining_core, workload, final_solution, id, consumption, start, end):
         
         if id == len(workload):
-            #print(remaining_core)
+            self.number_of_solutions = self.number_of_solutions + 1
             # final step of the recursion
             if final_solution[0] == -1:
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
-                    CPU_used = self.devices[i].CPU_cores - remaining_core[i]
-                consumption[1] = consumption[0]
-                self.number_of_solutions = self.number_of_solutions + 1
                 return
 
-            if consumption[0] < consumption[1]:
-                consumption[1] = consumption[0]
+            if self.optimization_function(self.devices, remaining_core, final_solution) < 0:
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
-            self.number_of_solutions = self.number_of_solutions + 1
             return
 
         for i in range(start, end):
@@ -277,12 +272,8 @@ class Infrastructure(Thread):
             
             if workload[id] <= remaining_core[i]:
                 remaining_core[i] = remaining_core[i] - workload[id]
-                CPU_used = self.devices[i].CPU_cores - remaining_core[i]
-                consumption[0] += self.devices[i].get_consumption_at_load(CPU_used)
-                if consumption[0] < consumption[1]:
-                    self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1, consumption, i, end)
+                self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1, consumption, i, end)
                 remaining_core[i] = remaining_core[i] + workload[id]
-                consumption[0] -= self.devices[i].get_consumption_at_load(CPU_used)
  
         return
 
