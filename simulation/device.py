@@ -4,8 +4,8 @@ import utils
 class Device:
     def __init__(self, device) -> None:
         self.name = device["name"]
-        self.CPU_usage_baseline = float(device["CPU_usage_baseline"])
-        self.CPU_cores = float(device["CPU_cores"]) - self.CPU_usage_baseline
+        self.CPU_usage_baseline = int(float(device["CPU_usage_baseline"]))
+        self.CPU_cores = int(float(device["CPU_cores"])) - self.CPU_usage_baseline
         self.constant_load_to_move = []
         self.variable_load_to_move = []
         self.device_type = device["device_type"]
@@ -28,8 +28,13 @@ class Device:
         with open(device["performance_details"]) as f:
             data_performance = json.load(f)
 
-        self.consumption = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_consumption["data"]["core_consumption"], self.name.split("-")[0], "Energy_consumption")
-        self.performance = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_performance["data"]["core_usage"], self.name.split("-")[0], "Pasmark_score")
+        x_val = []
+
+        for i in range(0, self.CPU_cores + self.CPU_usage_baseline):
+            x_val.append(i)
+
+        self.consumption = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_consumption["data"]["core_consumption"], self.name.split("-")[0], "Energy_consumption")(x_val).astype(float)
+        self.performance = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_performance["data"]["core_usage"], self.name.split("-")[0], "Pasmark_score")(x_val).astype(float)
         
     def __str__(self) -> str:
         return "- Dev name: " + self.name + "\tCPU cores: " + str(self.CPU_cores)
@@ -40,7 +45,7 @@ class Device:
             for l in self.constant_load_to_move:
                 load = load + l
 
-        return self.consumption(load)
+        return self.consumption[load]
 
     def compute_initial_score(self):
         score = self.CPU_usage_baseline
@@ -51,18 +56,18 @@ class Device:
         return score
 
     def get_consumption_at_load(self, load):            
-        return float(self.consumption(load + self.CPU_usage_baseline))
+        return (self.consumption[load + self.CPU_usage_baseline - 1])
 
     def get_score_at_load(self, load):            
-        return float(self.performance(load + self.CPU_usage_baseline))
+        return (self.performance[load + self.CPU_usage_baseline - 1])
 
     def convert_remaining_score_to_CPU_core(self, remaining_score):
-        score = self.CPU_cores + self.CPU_usage_baseline - remaining_score
-        return float(self.performance(score))
+        score = self.CPU_cores + self.CPU_usage_baseline - remaining_score - 1
+        return (self.performance[score])
 
     def convert_remaining_score_to_consumption(self, remaining_score):
-        score = self.CPU_cores + self.CPU_usage_baseline - remaining_score
-        return float(self.consumption(score))
+        score = self.CPU_cores + self.CPU_usage_baseline - remaining_score - 1
+        return (self.consumption[score])
 
     def check_same_device_type(self, dev2):
         if self.device_type == dev2.device_type:
