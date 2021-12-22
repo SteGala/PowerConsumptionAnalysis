@@ -129,7 +129,7 @@ class Infrastructure(Thread):
                 if self.devices[i].has_variable_load_to_move:
                     for l in self.devices[i].variable_load_to_move:
                         if datetime.datetime.strptime(l["start"], "%Y-%m-%d %H:%M:%S") <= start_date and datetime.datetime.strptime(l["end"], "%Y-%m-%d %H:%M:%S") >= start_date:
-                            delta_core += float(l["load"])
+                            delta_core += int(l["load"])
                 if available_core - delta_core < 0:
                     print("Infrastructure " + self.infra_name + " require more then the available core for " + self.devices[i].name)
                     exit(-1)
@@ -147,6 +147,7 @@ class Infrastructure(Thread):
 
         for i in range(len(self.devices)):
             remaining_core.append(int(self.devices[i].CPU_cores))
+            consumption[0] += self.devices[i].get_consumption_at_load(0)
             final_solution_continous.append(-1)
             
 
@@ -213,7 +214,7 @@ class Infrastructure(Thread):
                     start = datetime.datetime.strptime(variable_workload_to_schedule[i]["start"], "%Y-%m-%d %H:%M:%S")
                     end = datetime.datetime.strptime(variable_workload_to_schedule[i]["end"], "%Y-%m-%d %H:%M:%S")
                     while start <= end:
-                        scheduling_solution[final_workload_placement[i]][str(start)] -= float(variable_workload_to_schedule[i]["load"])
+                        scheduling_solution[final_workload_placement[i]][str(start)] -= int(variable_workload_to_schedule[i]["load"])
                         start += delta
 
             start_date += delta
@@ -236,11 +237,11 @@ class Infrastructure(Thread):
             return
 
         for i in range(len(remaining_core)):
-            if float(workloads[id]["load"]) <= remaining_core[i]:
+            if int(workloads[id]["load"]) <= remaining_core[i]:
                 workload_placement[id] = i
-                remaining_core[i] = remaining_core[i] - float(workloads[id]["load"])
+                remaining_core[i] = remaining_core[i] - int(workloads[id]["load"])
                 self.recursive_schedule_variable_load(remaining_core, workloads, id+1, final_solution, workload_placement, final_workload_placement)
-                remaining_core[i] = remaining_core[i] + float(workloads[id]["load"])
+                remaining_core[i] = remaining_core[i] + int(workloads[id]["load"])
                 workload_placement[id] = -1
 
     
@@ -250,29 +251,46 @@ class Infrastructure(Thread):
             self.number_of_solutions = self.number_of_solutions + 1
             # final step of the recursion
             if final_solution[0] == -1:
+                consumption[1] = consumption[0]
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
                 return
 
-            if self.optimization_function(self.devices, remaining_core, final_solution) < 0:
+            if consumption[0] < consumption[1]:
+                consumption[1] = consumption[0]
                 for i in range(len(final_solution)):
                     final_solution[i] = remaining_core[i]
             return
 
-        for i in range(start, end):
-            skip_this_device = False
-            
-            for j in range(start, i):
-                if self.devices[i].check_same_device_type(self.devices[j]) and remaining_core[i] == remaining_core[j]:
-                    skip_this_device = True
-                    break
-            
-            if skip_this_device:
+        available_devices = []
+        available_devices.append(start)
+        for i in range(start +1, end):
+            if self.devices[i].check_same_device_type(self.devices[i-1]) and remaining_core[i] == remaining_core[i-1]:
                 continue
+            else:
+                available_devices.append(i)
+
+        for i in available_devices:
+            #skip_this_device = False
+            
+            #for j in range(start, i):
+            #    if self.devices[i].check_same_device_type(self.devices[j]) and remaining_core[i] == remaining_core[j]:
+            #        skip_this_device = True
+            #        break
+            
+            #if skip_this_device:
+            #    continue
             
             if workload[id] <= remaining_core[i]:
+                current_consumption = self.devices[i].convert_remaining_score_to_consumption(remaining_core[i])
+                consumption[0] -= current_consumption
                 remaining_core[i] = remaining_core[i] - workload[id]
-                self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1, consumption, i, end)
+                new_consumption = self.devices[i].convert_remaining_score_to_consumption(remaining_core[i])
+                consumption[0] += new_consumption
+                if consumption[0] < consumption[1]:
+                    self.recursive_schedule_continous_load(remaining_core, workload, final_solution, id+1, consumption, i, end)
+                consumption[0] -= new_consumption
+                consumption[0] += current_consumption
                 remaining_core[i] = remaining_core[i] + workload[id]
  
         return
@@ -341,7 +359,7 @@ class Infrastructure(Thread):
         str_ret = str_ret + "Devices: \n"
 
         for i in range(len(self.devices)):
-            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(round(self.devices[i].convert_remaining_score_to_CPU_core(final_solution[i]), 3)) + "/" + str(round(float(self.devices[i].convert_remaining_score_to_CPU_core(0)), 3)) + "\n"
+            str_ret = str_ret + "\t- " + self.devices[i].name + "\tCPU (used/total) " + str(round(self.devices[i].convert_remaining_score_to_CPU_core(final_solution[i]), 3)) + "/" + str(int(self.devices[i].convert_remaining_score_to_CPU_core(0)), 3) + "\n"
         
         print(str_ret)
         
