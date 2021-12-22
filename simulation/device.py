@@ -33,8 +33,8 @@ class Device:
         for i in range(0, self.CPU_cores + self.CPU_usage_baseline):
             x_val.append(i)
 
-        self.consumption = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_consumption["data"]["core_consumption"], self.name.split("-")[0], "Energy_consumption")(x_val).astype(int)
-        self.performance = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_performance["data"]["core_usage"], self.name.split("-")[0], "Pasmark_score")(x_val).astype(int)
+        self.consumption = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_consumption["data"]["core_consumption"], self.name.split("-")[0], "Energy_consumption")(x_val).astype(float)
+        self.performance = utils.generate_continous_function_from_discrete_data(data_performance["data"]["core_score"], data_performance["data"]["core_usage"], self.name.split("-")[0], "Pasmark_score")(x_val).astype(float)
         
     def __str__(self) -> str:
         return "- Dev name: " + self.name + "\tCPU cores: " + str(self.CPU_cores)
