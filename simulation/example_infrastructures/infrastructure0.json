@@ -5,26 +5,26 @@
     "devices": 
     [
         {
-            "name": "laptop",
-            "replicas": "10",
+            "name": "desktop",
+            "replicas": "25",
             "CPU_cores": "5822.35",
             "CPU_usage_baseline": "1566.70",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [1000]
+                "load_to_move": [1000, 200]
             },  
             "variable_load": {
                 "need_to_move": "false",
                 "load_to_move": []
             },        
-            "consumption_details": "./example_consumption/laptop_consumption.json",
-            "performance_details": "./example_performance/laptop_performance.json"
+            "consumption_details": "./example_consumption/desktop_consumption.json",
+            "performance_details": "./example_performance/desktop_performance.json"
         },
         {
-            "name": "desktop",
+            "name": "server",
             "replicas": "1",
-            "CPU_cores": "8148.73",
-            "CPU_usage_baseline": "1749.09",
+            "CPU_cores": "16269",
+            "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "false",
                 "load_to_move": []
@@ -33,8 +33,8 @@
                 "need_to_move": "false",
                 "load_to_move": []
             },                 
-            "consumption_details": "./example_consumption/desktop_consumption.json",
-            "performance_details": "./example_performance/desktop_performance.json"
+            "consumption_details": "./example_consumption/server_consumption.json",
+            "performance_details": "./example_performance/server_performance.json"
         }
     ]
 }

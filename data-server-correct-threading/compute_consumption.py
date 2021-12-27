@@ -14,9 +14,9 @@ ax.set_xlabel("Load (%)")
 ax.set_ylabel("Consumption (W)")
 ax.legend()
 
-i=float(100/14)
+i=float(100/28)
 while i<=100:
-    print(round(f(i), 2))
-    i+=float(100/14)
+    print(str(round(f(i), 2)) + " W  ")
+    i+=float(100/28)
 
 plt.show()
