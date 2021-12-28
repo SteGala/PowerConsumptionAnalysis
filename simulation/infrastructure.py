@@ -265,7 +265,7 @@ class Infrastructure(Thread):
         available_devices = []
         available_devices.append(start)
         for i in range(start +1, end):
-            if self.devices[i].check_same_device_type(self.devices[i-1]) and remaining_core[i] == remaining_core[i-1]:
+            if remaining_core[i] == remaining_core[i-1] and self.devices[i].check_same_device_type(self.devices[i-1]):
                 continue
             else:
                 available_devices.append(i)
