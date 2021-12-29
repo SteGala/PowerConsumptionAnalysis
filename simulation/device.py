@@ -8,7 +8,7 @@ class Device:
         self.CPU_cores = int(float(device["CPU_cores"])) - self.CPU_usage_baseline
         self.constant_load_to_move = []
         self.variable_load_to_move = []
-        self.device_type = device["device_type"]
+        self.device_type = int(device["device_type"])
 
         if device["constant_load"]["need_to_move"] == "true":
             self.has_constant_load_to_move = True
