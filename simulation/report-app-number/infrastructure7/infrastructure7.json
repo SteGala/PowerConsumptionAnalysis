@@ -1,7 +1,7 @@
 {
     "name": "Infra1",
     "start_simulation": "2021-12-14 15:00:00",
-    "end_simulation": "2021-12-14 15:10:00",
+    "end_simulation": "2021-12-14 15:05:00",
     "devices": 
     [
         {
@@ -11,7 +11,7 @@
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [3580]
+                "load_to_move": [2840, 2840]
             },  
             "variable_load": {
                 "need_to_move": "false",

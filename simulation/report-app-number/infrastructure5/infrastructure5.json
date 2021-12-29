@@ -11,7 +11,7 @@
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [3580]
+                "load_to_move": [2130, 2130]
             },  
             "variable_load": {
                 "need_to_move": "false",
