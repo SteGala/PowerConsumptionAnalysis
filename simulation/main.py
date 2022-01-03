@@ -2,7 +2,7 @@ import infrastructure as infra
 import time
 import utils
 
-N_INFRA = 1
+N_INFRA = 10
 
 if __name__ == "__main__":
     start_time = time.time()
