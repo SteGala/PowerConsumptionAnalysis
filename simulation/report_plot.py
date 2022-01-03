@@ -85,3 +85,4 @@ for i in range(N_INFRA):
 #consumption_report.to_csv(report_path + '/overall_infrastructure_consumption.csv', index=None)
 #score_report.to_csv(report_path + '/overall_infrastructure_score.csv', index=None)
 CPU_usage_report.to_csv(report_path + '/excel_CPU_usage.csv', index=None)
+
