@@ -11,6 +11,8 @@ I test sono stati fatti su un'infrastruttura di dimensioni fisse, andando a diff
 
 Su questa infrastruttura fissa sono stati definiti due tipi di test in modo tale da identificare i possibili vantaggi di un approccio cloudificato al variare del carico applicato al sistema. In particolare si è voluto investigare in che modo 1) la dimensione e 2) il numero delle applicazioni da schedulare possa influenzare la soluzione ottimale di scheduling. In particolare nello scenario analizzato le 20 macchine desktop sono quelle che hanno la possibilità di spostare il proprio carico all'interno dell'infrastruttura, mentre le postazioni server hanno l'unico scopo di fornire all'occorrenza capacità computazionali.
 
+NOTA: quando si parla generalmente di risorse computazionali (quindi senza menzionare espressamente il termine CPU) si fa riferimento ai "punteggi passmark" che identificano sia lo score delle applicazioni da spostare, sia le risorse disponibili sulle macchine. Si tenga comunque in considerazione che si può sempre passare da CPU a "punteggi passmark" e viceversa.
+
 ## UNA APPLICAZIONE
 Questa tipologia di test permette di capire come impatta la dimensione delle applicazioni da schedulare sul consumo complessivo della soluzione di scheduling. In particolare nei due grafici successivi sull'asse delle ascisse andiamo a rappresentare la dimensione in percentuale delle applicazioni da schedulare; tale percentuale viene calcolata a partire dal quantitativo di risorse disponibili nelle macchine desktop. Per esempio un valore di 20% che possiamo riscontare nei grafici corrisponde ad uno scenario in cui tutte le macchine desktop hanno un workload da spostare, corrispondente al 20% delle loro risorse disponibili.
 
