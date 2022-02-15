@@ -246,9 +246,9 @@ class Infrastructure(Thread):
 
     
     def recursive_schedule_continous_load(self, remaining_core, workload, final_solution, id, consumption, start, end):
-        
         if id == len(workload):
             self.number_of_solutions = self.number_of_solutions + 1
+            #print(consumption)
             # final step of the recursion
             if final_solution[0] == -1:
                 consumption[1] = consumption[0]
