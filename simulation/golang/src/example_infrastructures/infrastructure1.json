@@ -1,17 +1,17 @@
 {
     "name": "Infra1",
     "start_simulation": "2021-12-14 15:00:00",
-    "end_simulation": "2021-12-14 15:02:00",
+    "end_simulation": "2021-12-14 15:10:00",
     "devices": 
     [
         {
             "name": "desktop",
-            "replicas": "18",
+            "replicas": "20",
             "CPU_cores": "8148",
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [100, 100]
+                "load_to_move": [710]
             },  
             "variable_load": {
                 "need_to_move": "false",
@@ -22,7 +22,7 @@
         },
         {
             "name": "server",
-            "replicas": "5",
+            "replicas": "20",
             "CPU_cores": "16269",
             "CPU_usage_baseline": "1000",
             "constant_load": {

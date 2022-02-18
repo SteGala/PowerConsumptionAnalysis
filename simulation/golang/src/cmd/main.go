@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"runtime"
 
 	//_ "net/http/pprof"
 	"strconv"
@@ -11,15 +12,15 @@ import (
 	"github.com/stegala/PowerConsumptionAnalysis/pkg/utils"
 )
 
-var numberOfInfrastructure = 4
-var safeThreadMargin = 0
+var numberOfInfrastructure = 20
+var safeThreadMargin = 2
 
 func main() {
 	//go func() {
 	//	http.ListenAndServe(":1234", nil)
 	//}()
-	//currCPU := runtime.NumCPU()
-	currCPU := 4
+	currCPU := runtime.NumCPU()
+	//currCPU := 4
 	log.Println("Detected " + strconv.Itoa(currCPU) + " virtual CPUs")
 
 	curTime := int(time.Now().Unix())
@@ -61,7 +62,7 @@ func main() {
 						}
 					}
 				}
-				time.Sleep(time.Duration(1) * time.Minute)
+				time.Sleep(time.Duration(15) * time.Second)
 			}
 		}
 		runningInstances++
@@ -73,6 +74,7 @@ func main() {
 
 	for id, start := range computationStart {
 		if start && !computationEnd[id] {
+			//log.Printf("Waiting for %d\n", id)
 			<-infraChannel[id]
 			log.Printf("Infrastructure %d finished the simulation.\n", id)
 			computationEnd[id] = true
