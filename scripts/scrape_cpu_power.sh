@@ -16,11 +16,11 @@ do
     echo "$(date +%s)$misc_consumption" >> ./data/cpu_misc_consumption
     echo "$(date +%s)$memory_consumption" >> ./data/memory_consumption
 
-    #usage=$(cat output_cpu_power.csv | grep "The system baseline power is estimated at:" | cut -d " " -f 9)
+    usage=$(cat output_cpu_power.csv | grep "The system baseline power is estimated at:" | cut -d " " -f 9)
 
-    #usage_metric="scraper_cpu_usage_power{hostname=\"${hostname}\"} ${usage}"$'\n'
+    usage_metric="scraper_cpu_usage_power{hostname=\"${hostname}\"} ${usage}"$'\n'
     
-    #curl -X POST -H  "Content-Type: text/plain" --data "$usage_metric" http://localhost:9091/metrics/job/top/instance/machine
+    curl -X POST -H  "Content-Type: text/plain" --data "$usage_metric" http://192.168.0.218:9091/metrics/job/top/instance/machine
 
     #echo $(date)
 done
