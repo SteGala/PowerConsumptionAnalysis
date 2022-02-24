@@ -39,7 +39,7 @@
         {
             "name": "raspi",
             "replicas": "5",
-            "CPU_cores": "800",
+            "CPU_cores": "923",
             "CPU_usage_baseline": "20",
             "constant_load": {
                 "need_to_move": "true",
