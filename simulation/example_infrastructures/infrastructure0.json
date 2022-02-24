@@ -7,8 +7,8 @@
         {
             "name": "desktop",
             "replicas": "14",
-            "CPU_cores": "8148.73",
-            "CPU_usage_baseline": "1000",
+            "CPU_cores": "8314",
+            "CPU_usage_baseline": "750",
             "constant_load": {
                 "need_to_move": "true",
                 "load_to_move": [100, 100]
@@ -23,7 +23,7 @@
         {
             "name": "server",
             "replicas": "5",
-            "CPU_cores": "16269",
+            "CPU_cores": "18760",
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "false",
@@ -35,6 +35,22 @@
             },                 
             "consumption_details": "./example_consumption/server_consumption.json",
             "performance_details": "./example_performance/server_performance.json"
+        },
+        {
+            "name": "raspi",
+            "replicas": "5",
+            "CPU_cores": "800",
+            "CPU_usage_baseline": "20",
+            "constant_load": {
+                "need_to_move": "true",
+                "load_to_move": []
+            }, 
+            "variable_load": {
+                "need_to_move": "false",
+                "load_to_move": []
+            },                 
+            "consumption_details": "./example_consumption/raspberry_consumption.json",
+            "performance_details": "./example_performance/raspberry_performance.json"
         }
     ]
 }

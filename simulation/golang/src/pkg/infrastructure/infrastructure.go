@@ -159,7 +159,6 @@ func (infra *Infrastructure) computeOptimizedPlacement(sType utils.SchedulingTyp
 
 func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int, constantWorkload []int, finalSolutionContinous []int, id int, consumption []float64, start int, end int, sType utils.SchedulingType) {
 	if id == len(constantWorkload) {
-		//fmt.Println(consumption)
 		//final step of the recursion
 		if finalSolutionContinous[0] == -1 {
 			consumption[1] = consumption[0]
@@ -186,13 +185,11 @@ func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int,
 		} else {
 			availableDevices = append(availableDevices, i)
 		}
-
 	}
 
 	for _, i := range availableDevices {
 
 		if constantWorkload[id] <= remainingCore[i] {
-			//fmt.Println(i)
 			currentConsumption := infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i], sType)
 			consumption[0] -= currentConsumption
 			remainingCore[i] -= constantWorkload[id]

@@ -7,11 +7,11 @@
         {
             "name": "desktop",
             "replicas": "20",
-            "CPU_cores": "8148",
-            "CPU_usage_baseline": "1000",
+            "CPU_cores": "8314",
+            "CPU_usage_baseline": "200",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [3195]
+                "load_to_move": [3375]
             },  
             "variable_load": {
                 "need_to_move": "false",
@@ -23,7 +23,7 @@
         {
             "name": "server",
             "replicas": "20",
-            "CPU_cores": "16269",
+            "CPU_cores": "18760",
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "false",

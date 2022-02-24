@@ -1,0 +1,7 @@
+{
+    "data": 
+   {
+       "core_usage": [0, 1, 2, 3, 4],
+       "core_consumption": [2, 6, 9, 12, 15]
+   }
+}
