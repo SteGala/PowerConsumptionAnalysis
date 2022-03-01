@@ -156,3 +156,7 @@ func (d *Device) CheckSameDeviceType(d2 Device) bool {
 		return false
 	}
 }
+
+func (d *Device) GetDeviceType() int {
+	return d.deviceType
+}

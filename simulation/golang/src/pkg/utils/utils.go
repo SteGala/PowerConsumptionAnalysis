@@ -80,6 +80,7 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 	}
 
 	for i := 0; i < nInfra; i++ {
+
 		csvConsumptionBasic, err := os.Open(reportPath + "/infrastructure" + strconv.Itoa(i) + "/consumption-" + Basic.String() + ".csv")
 		if err != nil {
 			log.Fatal(err)
@@ -125,12 +126,13 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 		}
 
 		for j := 1; j < slotCount; j++ {
-			infrastructureConsumption[j][0] = csvLinesConsumptionOriginal[j][0]
+			infrastructureConsumption[j][0] = csvLinesConsumptionOptimized[j][0]
 			sumBasic := 0.0
 			sumOriginal := 0.0
 			sumOptimized := 0.0
 			sumEnhanced := 0.0
-			for k := 1; k < len(csvLinesConsumptionOriginal[j]); k++ {
+			for k := 1; k < len(csvLinesConsumptionOptimized[j]); k++ {
+
 				if k < len(csvLinesConsumptionBasic[j]) {
 					bas, err := strconv.ParseFloat(csvLinesConsumptionBasic[j][k], 64)
 					if err != nil {
