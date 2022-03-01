@@ -272,20 +272,12 @@ func (infra *Infrastructure) generateReport(solution [][]placementReport, sType 
 				infrastructureConsumption[i] = append(infrastructureConsumption[i], start.String())
 				deviceResourceUsagePercentual[i] = append(deviceResourceUsagePercentual[i], start.String())
 			} else {
-				if sType == utils.Basic && !infra.deviceList[j-1].HasConstantLoadToMove() {
-					continue
-				}
-
 				remRes := solution[j-1][i-1].availableCore
-				if sType == utils.Enhanced {
+				if sType == utils.Enhanced || sType == utils.Basic {
 					if remRes == infra.deviceList[j-1].GetAvailableCPU() && !infra.deviceList[j-1].HasConstantLoadToMove() {
 						remRes = infra.deviceList[j-1].GetMaxCPU()
 					}
 				}
-				scoreUsagePercentual[i] = append(scoreUsagePercentual[i], fmt.Sprintf("%.3f", (1.0-float64(remRes)/float64(infra.deviceList[j-1].GetMaxCPU()))*100))
-				cpuUsagePercentual[i] = append(cpuUsagePercentual[i], fmt.Sprintf("%.3f", (infra.deviceList[j-1].GetCpuUsageFromRemainingResources(remRes)/infra.deviceList[j-1].GetCpuUsageFromRemainingResources(0.0))*100))
-				cpuUsageAbsolute[i] = append(cpuUsageAbsolute[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetCpuUsageFromRemainingResources(remRes)))
-				infrastructureConsumption[i] = append(infrastructureConsumption[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetConsumptioFromRemainingResources(remRes, sType)))
 
 				if prevDeviceType == infra.deviceList[j-1].GetDeviceType() {
 					sumCPU += (infra.deviceList[j-1].GetMaxCPU() - remRes)
@@ -296,9 +288,22 @@ func (infra *Infrastructure) generateReport(solution [][]placementReport, sType 
 					sumCPU = (infra.deviceList[j-1].GetMaxCPU() - remRes)
 					count = 1
 				}
+
+				if sType == utils.Basic && !infra.deviceList[j-1].HasConstantLoadToMove() {
+					sumCPU = 0
+					count++
+					continue
+				}
+
+				scoreUsagePercentual[i] = append(scoreUsagePercentual[i], fmt.Sprintf("%.3f", (1.0-float64(remRes)/float64(infra.deviceList[j-1].GetMaxCPU()))*100))
+				cpuUsagePercentual[i] = append(cpuUsagePercentual[i], fmt.Sprintf("%.3f", (infra.deviceList[j-1].GetCpuUsageFromRemainingResources(remRes)/infra.deviceList[j-1].GetCpuUsageFromRemainingResources(0.0))*100))
+				cpuUsageAbsolute[i] = append(cpuUsageAbsolute[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetCpuUsageFromRemainingResources(remRes)))
+				infrastructureConsumption[i] = append(infrastructureConsumption[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetConsumptioFromRemainingResources(remRes, sType)))
 			}
 		}
-		for j := 0 ; j < len(devResourceCount) ; j++ {
+		devResourceCount = append(devResourceCount, float64(sumCPU)/float64((count*infra.deviceList[len(infra.deviceList)-1].GetMaxCPU()))*100)
+
+		for j := 0; j < len(devResourceCount); j++ {
 			deviceResourceUsagePercentual[i] = append(deviceResourceUsagePercentual[i], fmt.Sprintf("%.3f", devResourceCount[j]))
 		}
 		start = start.Add(time.Duration(time.Minute))
@@ -356,7 +361,7 @@ func (infra *Infrastructure) generateReport(solution [][]placementReport, sType 
 	csvwriter.Flush()
 	csvInfrastructureConsumption.Close()
 
-	csvFileDeviceUsage, err := os.Create(infra.reportPath + "/device_percentual_CPU_usage-" + sType.String() + ".csv")
+	csvFileDeviceUsage, err := os.Create(infra.reportPath + "/device_percentual_resource_usage-" + sType.String() + ".csv")
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
 	}
