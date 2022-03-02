@@ -1,9 +1,13 @@
 import matplotlib.pyplot as plt
 from datetime import datetime
+import pandas as pd
+import numpy as np
 
-def read_load_events():
+report_directory = "../Measures/SmartPlug/data-server-crownlabs"
+
+def read_load_events(filepath):
     samples = []
-    with open('../data/load_events', 'r') as fileRead:
+    with open(filepath, 'r') as fileRead:
         data = fileRead.readlines()
         for line in data:
             if "#how" in line:
@@ -38,25 +42,62 @@ def read_resource_usage(filename):
 
     return samples
 
-def read_docker_resource_usage():
+def read_power_consumption_csv(filename):
+    data = pd.read_csv(filename)
+    samples_powertop = []
+    samples_smartplug = []
+    del data["Time"]
+    #del data["docker cpu usage"]
+
+    data = data.reset_index()  # make sure indexes pair with number of rows
+    for index , row in data.iterrows():
+        sample_powertop = {}
+        sample_smartplug = {}
+
+        sample_powertop["time"] = datetime.fromtimestamp(row["timestamp"])
+        sample_smartplug["time"] = datetime.fromtimestamp(row["timestamp"])
+        #sample_powertop["usage"] = row["powertop measure"]
+        sample_smartplug["usage"] = row["smart plug measure"]
+        samples_powertop.append(sample_powertop)
+        samples_smartplug.append(sample_smartplug)
+    
+    return samples_powertop, samples_smartplug
+
+def read_docker_resource_usage(filename):
+    data = pd.read_csv(filename)
     samples = []
-    with open("../data/cpu_usage_docker", 'r') as fileRead:
-        data = fileRead.readlines()
-        for line in data:
-            if "#how" in line:
-                continue
-            
-            sample = {}
-            sample["time"] = datetime.fromtimestamp(int(line.split(" ")[0]))
-            sample["usage"] = 0
+    del data["Time"]
+    #del data["powertop measure"]
+    del data["smart plug measure"]
 
-            if line.split(" ")[1] != "\n":
-                #print(len(line.split(" ")))
-                sample["usage"] = float(line.split(" ")[1])/8 # TODO: mettere in modo dinamico
-
-            samples.append(sample)
+    data = data.reset_index()  # make sure indexes pair with number of rows
+    for index , row in data.iterrows():
+        sample = {}
+        sample["time"] = datetime.fromtimestamp(row["timestamp"])
+        sample["usage"] = row["docker cpu usage"]/8
+        samples.append(sample)
 
     return samples
+
+#def read_docker_resource_usage(filename):
+#    samples = []
+#    with open(filename, 'r') as fileRead:
+#        data = fileRead.readlines()
+#        for line in data:
+#            if "#how" in line:
+#                continue
+#            
+#            sample = {}
+#            sample["time"] = datetime.fromtimestamp(int(line.split(" ")[0]))
+#            sample["usage"] = 0
+#
+#            if line.split(" ")[1] != "\n":
+#                #print(len(line.split(" ")))
+#                sample["usage"] = float(line.split(" ")[1])/8 # TODO: mettere in modo dinamico
+#
+#            samples.append(sample)
+#
+#    return samples
 
 def convert_float(element):
     try:
@@ -113,6 +154,25 @@ def aggregate_resource_usage(data):
 
     return result
 
+def compute_percentile_data(data, load_events, percentile):
+    p_data = []
+    x_values = []
+
+    for event in load_events:
+        x_values.append(event["load"])
+        start_event = event["start"]
+        end_event = event["end"]
+        val = []
+
+        for d in data:
+            if d["time"] > start_event and d["time"] < end_event:
+                val.append(d["usage"])
+        
+        val_np = np.array(val) 
+        p_data.append(np.percentile(val_np, percentile))
+    
+    return x_values, p_data
+
 def compute_load_average_data(data1, load_events):
     avg_data1 = []
     x_values = []
@@ -151,6 +211,14 @@ def plot_averaged_monitored_cpu_usage(data1, data2, load_events):
     fig.savefig("../data/plot/CPU_load.png")
     plt.close(fig)
 
+def plot_power_consumption(core_consumption, device_consumption, load_events):
+    #x_val, core_cons = compute_percentile_data(core_consumption, load_events, 85) 
+    x_val, dev_cons = compute_percentile_data(device_consumption, load_events, 85) 
+
+    print(x_val)
+    #print(core_cons)
+    print(dev_cons)
+
 
 def plot_power_consumption_on_load(data1, data2, data3, load, load_events):
     width = .75
@@ -186,6 +254,8 @@ def plot_cpu_efficiency(load, load_events):
     x_values = [str(i) for i in x_values]
     y_values = [i["score"] for i in load_events]
 
+    print(y_values)
+
     fig, ax1 = plt.subplots()
 
     ax1.bar(x_values, y_values)
@@ -195,7 +265,7 @@ def plot_cpu_efficiency(load, load_events):
 
     fig.tight_layout()
 
-    fig.savefig("../data/plot/CPU_score.png")
+    fig.savefig("/".join([report_directory, "plot/CPU_score.png"]))
     plt.close(fig)
 
 def load_cpu_scores(load_events):
@@ -204,7 +274,7 @@ def load_cpu_scores(load_events):
     for event in load_events:
         sub_name = str(int(event["load"]))
 
-        with open('../data/results_cpu_' + sub_name + ".yml", 'r') as fileRead:
+        with open("/".join([report_directory, 'results_cpu_' + sub_name + ".yml"]), 'r') as fileRead:
             data = fileRead.readlines()
             for line in data:
                 if "CPU_INTEGER_MATH" in line:
@@ -314,7 +384,7 @@ def plot_cpu_scores(load, load_events):
     ax.set_xlabel("Assigned CPU cores")
     ax.set_ylabel("Normalized Passmark score")
 
-    fig.savefig("../data/plot/CPU_scores.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
+    fig.savefig("/".join([report_directory, "plot/CPU_scores.png"]), bbox_extra_artists=(lgd,), bbox_inches='tight')
     plt.close(fig)
 
 def plot_load_consumption_dispersion(load, consumption):
@@ -403,20 +473,22 @@ def plot_load_on_assigned_resources(load, load_events):
     
 
 
+
 if __name__ == "__main__":
-    load_events = read_load_events()
-    memory_usage = read_resource_usage("../data/memory_usage")
-    cpu_usage = read_resource_usage("../data/cpu_usage")
-    cpu_usage_docker_aggregated = read_docker_resource_usage()
-    cpu_core_consumption = read_power_consumption("../data/cpu_core_consumption")
-    cpu_misc_consumption = read_power_consumption("../data/cpu_misc_consumption")
-    memory_consumption = read_power_consumption("../data/memory_consumption")
-
-    #print(cpu_core_consumption)
-
-    cpu_usage_aggregated = aggregate_resource_usage(cpu_usage)
-
-
+    load_events = read_load_events("/".join([report_directory, "load_events"]))
+    #memory_usage = read_resource_usage("../data/memory_usage")
+    #cpu_usage = read_resource_usage("/".join([report_directory, "Prometheus_results.csv"]))
+    #cpu_usage_docker_aggregated = read_docker_resource_usage("/".join([report_directory, "Prometheus_results.csv"]))
+    #cpu_core_consumption = read_power_consumption("../data/cpu_core_consumption")
+    #cpu_misc_consumption = read_power_consumption("../data/cpu_misc_consumption")
+    #memory_consumption = read_power_consumption("../data/memory_consumption")
+    cpu_consumption, system_consumption = read_power_consumption_csv("/".join([report_directory, "Prometheus_results.csv"]))
+#
+    ##print(cpu_core_consumption)
+#
+    #cpu_usage_aggregated = aggregate_resource_usage(cpu_usage)
+#
+#
     left  = 0.125  # the left side of the subplots of the figure
     right = 0.9    # the right side of the subplots of the figure
     bottom = 0.2   # the bottom of the subplots of the figure
@@ -424,12 +496,13 @@ if __name__ == "__main__":
     wspace = 0.3   # the amount of width reserved for blank space between subplots
     hspace = 0.3   # the amount of height reserved for white space between subplots
     plt.subplots_adjust(left=left, bottom=bottom, right=right, top=top, wspace=wspace, hspace=hspace)
-
-    plot_power_consumption_on_load(cpu_core_consumption, cpu_misc_consumption, memory_consumption, cpu_usage_aggregated, load_events)
-    plot_cpu_efficiency(cpu_usage_aggregated, load_events)
-    plot_cpu_scores(cpu_usage_aggregated, load_events)
-    plot_averaged_monitored_cpu_usage(cpu_usage_aggregated, cpu_usage_docker_aggregated, load_events)
-    plot_load_consumption_dispersion(cpu_usage_aggregated, cpu_core_consumption)
-    #plot_score_on_assigned_resources(load_events)
-    plot_load_on_assigned_resources(cpu_usage_aggregated, load_events)
+#
+    #plot_power_consumption_on_load(cpu_core_consumption, cpu_misc_consumption, memory_consumption, cpu_usage_aggregated, load_events)
+    plot_cpu_efficiency([], load_events)
+    #plot_cpu_scores([], load_events)
+    plot_power_consumption(cpu_consumption, system_consumption, load_events)
+    #plot_averaged_monitored_cpu_usage(cpu_usage_aggregated, cpu_usage_docker_aggregated, load_events)
+    #plot_load_consumption_dispersion(cpu_usage_aggregated, cpu_core_consumption)
+    ##plot_score_on_assigned_resources(load_events)
+    #plot_load_on_assigned_resources(cpu_usage_aggregated, load_events)
     

@@ -23,7 +23,7 @@
         {
             "name": "server",
             "replicas": "5",
-            "CPU_cores": "18760",
+            "CPU_cores": "60853",
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "false",
@@ -33,8 +33,8 @@
                 "need_to_move": "false",
                 "load_to_move": []
             },                 
-            "consumption_details": "./example_consumption/server_consumption.json",
-            "performance_details": "./example_performance/server_performance.json"
+            "consumption_details": "./example_consumption/server_crownlabs_consumption.json",
+            "performance_details": "./example_performance/server_crownlabs_performance.json"
         },
         {
             "name": "raspi",
