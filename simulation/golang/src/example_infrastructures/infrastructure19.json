@@ -6,7 +6,7 @@
     [
         {
             "name": "desktop",
-            "replicas": "20",
+            "replicas": "30",
             "CPU_cores": "8314",
             "CPU_usage_baseline": "200",
             "constant_load": {
@@ -22,8 +22,8 @@
         },
         {
             "name": "server",
-            "replicas": "20",
-            "CPU_cores": "18760",
+            "replicas": "5",
+            "CPU_cores": "60853",
             "CPU_usage_baseline": "1000",
             "constant_load": {
                 "need_to_move": "false",
@@ -33,8 +33,8 @@
                 "need_to_move": "false",
                 "load_to_move": []
             },                 
-            "consumption_details": "./example_consumption/server_consumption.json",
-            "performance_details": "./example_performance/server_performance.json"
+            "consumption_details": "./example_consumption/server_crownlabs_consumption.json",
+            "performance_details": "./example_performance/server_crownlabs_performance.json"
         }
     ]
 }
