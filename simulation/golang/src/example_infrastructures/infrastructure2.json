@@ -8,7 +8,7 @@
             "name": "desktop",
             "replicas": "30",
             "CPU_cores": "8314",
-            "CPU_usage_baseline": "200",
+            "CPU_usage_baseline": "600",
             "constant_load": {
                 "need_to_move": "true",
                 "load_to_move": [1125]
