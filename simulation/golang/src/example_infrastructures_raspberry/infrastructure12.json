@@ -24,7 +24,7 @@
             "name": "server",
             "replicas": "5",
             "CPU_cores": "60853",
-            "CPU_usage_baseline": "1000",
+            "CPU_usage_baseline": "2000",
             "constant_load": {
                 "need_to_move": "false",
                 "load_to_move": []

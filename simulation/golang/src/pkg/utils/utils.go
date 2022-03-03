@@ -38,6 +38,95 @@ func CreateDirectory(path string) error {
 	return os.Mkdir(path, os.ModePerm)
 }
 
+func SummarizeReportsDeviceResourceConsumption(nInfra int, report_path string) {
+	csvFileResourceUsageExcel, err := os.Create(report_path + "/overall_device_resource_usage_excel.csv")
+	if err != nil {
+		log.Fatalf("failed creating file: %s", err)
+	}
+
+	csvwriterExcel := csv.NewWriter(csvFileResourceUsageExcel)
+
+	deviceResourceUsageExcel := make([][]string, 0, 5)
+
+	for i := 0; i < nInfra; i++ {
+		if i == 0 {
+			for j := 0; j < 5; j++ {
+				deviceResourceUsageExcel = append(deviceResourceUsageExcel, make([]string, 0, 1))
+				if j == 0 {
+					deviceResourceUsageExcel[j] = append(deviceResourceUsageExcel[j], "")
+				}
+			}
+			deviceResourceUsageExcel[1] = append(deviceResourceUsageExcel[1], Basic.String())
+			deviceResourceUsageExcel[2] = append(deviceResourceUsageExcel[2], Original.String())
+			deviceResourceUsageExcel[3] = append(deviceResourceUsageExcel[3], Optimized.String())
+			deviceResourceUsageExcel[4] = append(deviceResourceUsageExcel[4], Enhanced.String())
+		}
+
+		csvResourceUsageBasic, err := os.Open(report_path + "/infrastructure" + strconv.Itoa(i) + "/device_percentual_resource_usage-" + Basic.String() + ".csv")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer csvResourceUsageBasic.Close()
+
+		csvLinesResourceUsageBasic, err := csv.NewReader(csvResourceUsageBasic).ReadAll()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		csvResourceUsageOriginal, err := os.Open(report_path + "/infrastructure" + strconv.Itoa(i) + "/device_percentual_resource_usage-" + Original.String() + ".csv")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer csvResourceUsageOriginal.Close()
+
+		csvLinesResourceUsageOriginal, err := csv.NewReader(csvResourceUsageOriginal).ReadAll()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		csvResourceUsageOptimized, err := os.Open(report_path + "/infrastructure" + strconv.Itoa(i) + "/device_percentual_resource_usage-" + Optimized.String() + ".csv")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer csvResourceUsageOptimized.Close()
+
+		csvLinesResourceUsageOptimized, err := csv.NewReader(csvResourceUsageOptimized).ReadAll()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		csvResourceUsageEnhanced, err := os.Open(report_path + "/infrastructure" + strconv.Itoa(i) + "/device_percentual_resource_usage-" + Enhanced.String() + ".csv")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer csvResourceUsageEnhanced.Close()
+
+		csvLinesResourceUsageEnhanced, err := csv.NewReader(csvResourceUsageEnhanced).ReadAll()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		for j := 1; j < len(csvLinesResourceUsageBasic[0]); j++ {
+			deviceResourceUsageExcel[0] = append(deviceResourceUsageExcel[0], csvLinesResourceUsageBasic[0][j])
+		}
+
+		for j := 1; j < len(csvLinesResourceUsageBasic[0]); j++ {
+			deviceResourceUsageExcel[1] = append(deviceResourceUsageExcel[1], csvLinesResourceUsageBasic[1][j])
+			deviceResourceUsageExcel[2] = append(deviceResourceUsageExcel[2], csvLinesResourceUsageOriginal[1][j])
+			deviceResourceUsageExcel[3] = append(deviceResourceUsageExcel[3], csvLinesResourceUsageOptimized[1][j])
+			deviceResourceUsageExcel[4] = append(deviceResourceUsageExcel[4], csvLinesResourceUsageEnhanced[1][j])
+		}
+	}
+
+	for _, empRow := range deviceResourceUsageExcel {
+		_ = csvwriterExcel.Write(empRow)
+	}
+
+	csvwriterExcel.Flush()
+	csvFileResourceUsageExcel.Close()
+
+}
+
 func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time, end time.Time) {
 	csvFileConsumption, err := os.Create(reportPath + "/overall_infrastructure_consumption.csv")
 	if err != nil {

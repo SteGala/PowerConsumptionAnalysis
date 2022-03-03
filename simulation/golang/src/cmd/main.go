@@ -13,7 +13,7 @@ import (
 )
 
 var numberOfInfrastructure = 20
-var safeThreadMargin = 2
+var safeThreadMargin = 1
 
 func main() {
 	//go func() {
@@ -82,6 +82,7 @@ func main() {
 	}
 
 	utils.SummarizeReportsConsumption(numberOfInfrastructure, report_path, infrastructures[0].GetSimulationStartTime(), infrastructures[0].GetSimulationEndTime())
+	utils.SummarizeReportsDeviceResourceConsumption(numberOfInfrastructure, report_path)
 	elapsedTime := time.Now().Unix() - int64(curTime)
 	log.Printf("Simulation ended in %ds\n", elapsedTime)
 
