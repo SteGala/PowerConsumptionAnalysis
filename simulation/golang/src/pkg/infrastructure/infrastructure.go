@@ -163,8 +163,22 @@ func (infra *Infrastructure) computeOptimizedPlacement(sType utils.SchedulingTyp
 	return optimizedPlacement
 }
 
+func (infra *Infrastructure) isTheSolutionAcceptable(remainingCore []int) bool {
+	for id, dev := range infra.deviceList {
+		if !dev.HasConstantLoadToMove() {
+			if remainingCore[id] != dev.GetAvailableCPU() {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int, constantWorkload []int, finalSolutionContinous []int, id int, consumption []float64, start int, end int, sType utils.SchedulingType) {
 	if id == len(constantWorkload) {
+		//if !infra.isTheSolutionAcceptable(remainingCore) {
+		//	return
+		//}
 		//final step of the recursion
 		if finalSolutionContinous[0] == -1 {
 			consumption[1] = consumption[0]

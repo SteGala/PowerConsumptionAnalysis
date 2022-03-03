@@ -6,7 +6,7 @@
     [
         {
             "name": "raspi",
-            "replicas": "30",
+            "replicas": "25",
             "CPU_cores": "923",
             "CPU_usage_baseline": "20",
             "constant_load": {

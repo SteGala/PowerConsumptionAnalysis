@@ -106,11 +106,11 @@ func SummarizeReportsDeviceResourceConsumption(nInfra int, report_path string) {
 			fmt.Println(err)
 		}
 
-		for j := 1; j < len(csvLinesResourceUsageBasic[0]); j++ {
-			deviceResourceUsageExcel[0] = append(deviceResourceUsageExcel[0], csvLinesResourceUsageBasic[0][j])
+		for j := 1; j < len(csvLinesResourceUsageEnhanced[0]); j++ {
+			deviceResourceUsageExcel[0] = append(deviceResourceUsageExcel[0], csvLinesResourceUsageEnhanced[0][j])
 		}
 
-		for j := 1; j < len(csvLinesResourceUsageBasic[0]); j++ {
+		for j := 1; j < len(csvLinesResourceUsageEnhanced[0]); j++ {
 			deviceResourceUsageExcel[1] = append(deviceResourceUsageExcel[1], csvLinesResourceUsageBasic[1][j])
 			deviceResourceUsageExcel[2] = append(deviceResourceUsageExcel[2], csvLinesResourceUsageOriginal[1][j])
 			deviceResourceUsageExcel[3] = append(deviceResourceUsageExcel[3], csvLinesResourceUsageOptimized[1][j])
