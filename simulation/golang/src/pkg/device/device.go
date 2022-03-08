@@ -129,8 +129,8 @@ func (d *Device) GetCpuUsageFromRemainingResources(rem int) float64 {
 }
 
 func (d *Device) GetConsumptioFromRemainingResources(rem int, sType utils.SchedulingType) float64 {
-	if rem == d.maxCPUCores {
-		return 0
+	if rem == d.maxCPUCores || (sType == utils.Enhanced && rem == d.cpuCores && !d.hasConstantLoadToMove) {
+		return 10.0
 	}
 
 	usedCPU := d.maxCPUCores - rem - 1
@@ -144,7 +144,7 @@ func (d *Device) GetConsumptioAtLoad(load int) float64 {
 
 func (d *Device) GetEnhancedConsumptioAtLoad(load int) float64 {
 	if load == 0 {
-		return 0
+		return 10.0
 	}
 	return d.consumption[load+d.cpuUsageBaseline]
 }
@@ -155,4 +155,8 @@ func (d *Device) CheckSameDeviceType(d2 Device) bool {
 	} else {
 		return false
 	}
+}
+
+func (d *Device) GetDeviceType() int {
+	return d.deviceType
 }
