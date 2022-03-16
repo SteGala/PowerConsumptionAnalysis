@@ -6,7 +6,7 @@
     [
         {
             "name": "desktop",
-            "replicas": "35",
+            "replicas": "40",
             "CPU_cores": "8314",
             "CPU_usage_baseline": "350",
             "constant_load": {

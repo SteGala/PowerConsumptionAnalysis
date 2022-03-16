@@ -13,7 +13,7 @@ import (
 )
 
 var numberOfInfrastructure = 20
-var safeThreadMargin = 1
+var safeThreadMargin = 2
 
 func main() {
 	//go func() {
