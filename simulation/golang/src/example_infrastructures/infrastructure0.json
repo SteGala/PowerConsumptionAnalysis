@@ -6,12 +6,12 @@
     [
         {
             "name": "desktop",
-            "replicas": "25",
+            "replicas": "35",
             "CPU_cores": "8314",
-            "CPU_usage_baseline": "600",
+            "CPU_usage_baseline": "350",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [7125]
+                "load_to_move": [375]
             },  
             "variable_load": {
                 "need_to_move": "false",
