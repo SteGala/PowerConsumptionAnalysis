@@ -124,7 +124,7 @@ func (d *Device) GetCpuUsageFromRemainingResources(rem int) float64 {
 	if rem == d.maxCPUCores {
 		return 0.0
 	}
-	usedCPU := d.maxCPUCores - rem - 1
+	usedCPU := d.maxCPUCores - rem - 2
 	return d.performance[usedCPU]
 }
 
@@ -133,7 +133,7 @@ func (d *Device) GetConsumptioFromRemainingResources(rem int, sType utils.Schedu
 		return 10.0
 	}
 
-	usedCPU := d.maxCPUCores - rem - 1
+	usedCPU := d.maxCPUCores - rem - 2
 	//fmt.Println(d.maxCPUCores)
 	return d.consumption[usedCPU]
 }
