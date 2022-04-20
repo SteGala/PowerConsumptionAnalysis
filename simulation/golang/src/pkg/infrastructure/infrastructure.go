@@ -16,6 +16,8 @@ import (
 	"github.com/stegala/PowerConsumptionAnalysis/pkg/utils"
 )
 
+var frontendOverhead = 500
+
 type Infrastructure struct {
 	reportPath          string
 	infraName           string
@@ -152,8 +154,12 @@ func (infra *Infrastructure) computeOptimizedPlacement(sType utils.SchedulingTyp
 		optimizedPlacement[i] = make([]placementReport, 0, 2)
 
 		for d := infra.startSimulation; !d.After(infra.endSimulation); d = d.Add(time.Duration(time.Minute)) {
+			rem := finalSolutionContinous[i]
+			if rem == infra.deviceList[i].GetAvailableCPU() && infra.deviceList[i].HasConstantLoadToMove() {
+				rem -= frontendOverhead
+			}
 			optimizedPlacement[i] = append(optimizedPlacement[i], placementReport{
-				availableCore: finalSolutionContinous[i],
+				availableCore: rem,
 				date:          d,
 			})
 
@@ -176,9 +182,10 @@ func (infra *Infrastructure) isTheSolutionAcceptable(remainingCore []int) bool {
 
 func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int, constantWorkload []int, finalSolutionContinous []int, id int, consumption []float64, start int, end int, sType utils.SchedulingType) {
 	if id == len(constantWorkload) {
-		//if !infra.isTheSolutionAcceptable(remainingCore) {
-		//	return
-		//}
+		if !infra.isTheSolutionAcceptable(remainingCore) {
+			return
+		}
+
 		//final step of the recursion
 		if finalSolutionContinous[0] == -1 {
 			consumption[1] = consumption[0]
