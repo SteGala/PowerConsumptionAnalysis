@@ -1,0 +1,2 @@
+La prima run e' stata fatta con il desktop, la seconda con il raspberry (tra le due ci sono due run interrotte per errori di configurazione)
+rispettivamente sono state riservate 0.32 e 2.9 cpu per l'esecuzione dell'nginx, corrispondenti a 700 passmark score. 
