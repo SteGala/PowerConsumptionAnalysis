@@ -16,7 +16,8 @@ import (
 	"github.com/stegala/PowerConsumptionAnalysis/pkg/utils"
 )
 
-var frontendOverhead = 500
+var frontendOverhead = 100
+var PUE = 1.3
 
 type Infrastructure struct {
 	reportPath          string
@@ -84,9 +85,9 @@ func NewInfrastructure(infraPath string, reportPath string) *Infrastructure {
 }
 
 func (infra Infrastructure) ComputeOptimizedPlacement(endChan chan bool) {
-	originalPlacement := infra.computeOriginalPlacement()
-	infra.generateReport(originalPlacement, utils.Original)
-	infra.generateReport(originalPlacement, utils.Basic)
+	//originalPlacement := infra.computeOriginalPlacement()
+	//infra.generateReport(originalPlacement, utils.Original)
+	//infra.generateReport(originalPlacement, utils.Basic)
 
 	optimizedPlacement := infra.computeOptimizedPlacement(utils.Optimized)
 	enhancedPlacement := infra.computeOptimizedPlacement(utils.Enhanced)
@@ -319,7 +320,11 @@ func (infra *Infrastructure) generateReport(solution [][]placementReport, sType 
 				scoreUsagePercentual[i] = append(scoreUsagePercentual[i], fmt.Sprintf("%.3f", (1.0-float64(remRes)/float64(infra.deviceList[j-1].GetMaxCPU()))*100))
 				cpuUsagePercentual[i] = append(cpuUsagePercentual[i], fmt.Sprintf("%.3f", (infra.deviceList[j-1].GetCpuUsageFromRemainingResources(remRes)/infra.deviceList[j-1].GetCpuUsageFromRemainingResources(0.0))*100))
 				cpuUsageAbsolute[i] = append(cpuUsageAbsolute[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetCpuUsageFromRemainingResources(remRes)))
-				infrastructureConsumption[i] = append(infrastructureConsumption[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetConsumptioFromRemainingResources(remRes, sType)))
+				if infra.deviceList[j-1].HasConstantLoadToMove() {
+					infrastructureConsumption[i] = append(infrastructureConsumption[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetConsumptioFromRemainingResources(remRes, sType)))
+				} else {
+					infrastructureConsumption[i] = append(infrastructureConsumption[i], fmt.Sprintf("%.3f", infra.deviceList[j-1].GetConsumptioFromRemainingResources(remRes, sType)*PUE))
+				}
 			}
 		}
 		devResourceCount = append(devResourceCount, float64(sumCPU)/float64((count*infra.deviceList[len(infra.deviceList)-1].GetMaxCPU()))*100)

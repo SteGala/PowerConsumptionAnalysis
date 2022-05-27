@@ -61,7 +61,7 @@ func SummarizeReportsDeviceResourceConsumption(nInfra int, report_path string) {
 			deviceResourceUsageExcel[3] = append(deviceResourceUsageExcel[3], Optimized.String())
 			deviceResourceUsageExcel[4] = append(deviceResourceUsageExcel[4], Enhanced.String())
 		}
-
+/*
 		csvResourceUsageBasic, err := os.Open(report_path + "/infrastructure" + strconv.Itoa(i) + "/device_percentual_resource_usage-" + Basic.String() + ".csv")
 		if err != nil {
 			log.Fatal(err)
@@ -83,6 +83,7 @@ func SummarizeReportsDeviceResourceConsumption(nInfra int, report_path string) {
 		if err != nil {
 			fmt.Println(err)
 		}
+		*/
 
 		csvResourceUsageOptimized, err := os.Open(report_path + "/infrastructure" + strconv.Itoa(i) + "/device_percentual_resource_usage-" + Optimized.String() + ".csv")
 		if err != nil {
@@ -111,8 +112,8 @@ func SummarizeReportsDeviceResourceConsumption(nInfra int, report_path string) {
 		}
 
 		for j := 1; j < len(csvLinesResourceUsageEnhanced[0]); j++ {
-			deviceResourceUsageExcel[1] = append(deviceResourceUsageExcel[1], csvLinesResourceUsageBasic[1][j])
-			deviceResourceUsageExcel[2] = append(deviceResourceUsageExcel[2], csvLinesResourceUsageOriginal[1][j])
+			//deviceResourceUsageExcel[1] = append(deviceResourceUsageExcel[1], csvLinesResourceUsageBasic[1][j])
+			//deviceResourceUsageExcel[2] = append(deviceResourceUsageExcel[2], csvLinesResourceUsageOriginal[1][j])
 			deviceResourceUsageExcel[3] = append(deviceResourceUsageExcel[3], csvLinesResourceUsageOptimized[1][j])
 			deviceResourceUsageExcel[4] = append(deviceResourceUsageExcel[4], csvLinesResourceUsageEnhanced[1][j])
 		}
@@ -157,8 +158,8 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 	}
 
 	for i := 0; i < nInfra; i++ {
-		infrastructureConsumption[0] = append(infrastructureConsumption[0], "infrastructure"+strconv.Itoa(i)+"-"+Basic.String())
-		infrastructureConsumption[0] = append(infrastructureConsumption[0], "infrastructure"+strconv.Itoa(i)+"-"+Original.String())
+		//infrastructureConsumption[0] = append(infrastructureConsumption[0], "infrastructure"+strconv.Itoa(i)+"-"+Basic.String())
+		//infrastructureConsumption[0] = append(infrastructureConsumption[0], "infrastructure"+strconv.Itoa(i)+"-"+Original.String())
 		infrastructureConsumption[0] = append(infrastructureConsumption[0], "infrastructure"+strconv.Itoa(i)+"-"+Optimized.String())
 		infrastructureConsumption[0] = append(infrastructureConsumption[0], "infrastructure"+strconv.Itoa(i)+"-"+Enhanced.String())
 	}
@@ -169,7 +170,7 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 	}
 
 	for i := 0; i < nInfra; i++ {
-
+/*
 		csvConsumptionBasic, err := os.Open(reportPath + "/infrastructure" + strconv.Itoa(i) + "/consumption-" + Basic.String() + ".csv")
 		if err != nil {
 			log.Fatal(err)
@@ -191,7 +192,7 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 		if err != nil {
 			fmt.Println(err)
 		}
-
+*/
 		csvConsumptionOptimized, err := os.Open(reportPath + "/infrastructure" + strconv.Itoa(i) + "/consumption-" + Optimized.String() + ".csv")
 		if err != nil {
 			log.Fatal(err)
@@ -216,12 +217,12 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 
 		for j := 1; j < slotCount; j++ {
 			infrastructureConsumption[j][0] = csvLinesConsumptionOptimized[j][0]
-			sumBasic := 0.0
-			sumOriginal := 0.0
+			//sumBasic := 0.0
+			//sumOriginal := 0.0
 			sumOptimized := 0.0
 			sumEnhanced := 0.0
 			for k := 1; k < len(csvLinesConsumptionOptimized[j]); k++ {
-
+/*
 				if k < len(csvLinesConsumptionBasic[j]) {
 					bas, err := strconv.ParseFloat(csvLinesConsumptionBasic[j][k], 64)
 					if err != nil {
@@ -235,6 +236,7 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 					log.Fatal(err)
 				}
 				sumOriginal += ori
+				*/
 
 				opt, err := strconv.ParseFloat(csvLinesConsumptionOptimized[j][k], 64)
 				if err != nil {
@@ -249,13 +251,13 @@ func SummarizeReportsConsumption(nInfra int, reportPath string, start time.Time,
 				sumEnhanced += enh
 			}
 
-			infrastructureConsumption[j] = append(infrastructureConsumption[j], fmt.Sprintf("%.3f", sumBasic))
-			infrastructureConsumption[j] = append(infrastructureConsumption[j], fmt.Sprintf("%.3f", sumOriginal))
+			//infrastructureConsumption[j] = append(infrastructureConsumption[j], fmt.Sprintf("%.3f", sumBasic))
+			//infrastructureConsumption[j] = append(infrastructureConsumption[j], fmt.Sprintf("%.3f", sumOriginal))
 			infrastructureConsumption[j] = append(infrastructureConsumption[j], fmt.Sprintf("%.3f", sumOptimized))
 			infrastructureConsumption[j] = append(infrastructureConsumption[j], fmt.Sprintf("%.3f", sumEnhanced))
 
-			infrastructureConsumptionExcel[0][i+1] = fmt.Sprintf("%.3f", sumBasic)
-			infrastructureConsumptionExcel[1][i+1] = fmt.Sprintf("%.3f", sumOriginal)
+			//infrastructureConsumptionExcel[0][i+1] = fmt.Sprintf("%.3f", sumBasic)
+			//infrastructureConsumptionExcel[1][i+1] = fmt.Sprintf("%.3f", sumOriginal)
 			infrastructureConsumptionExcel[2][i+1] = fmt.Sprintf("%.3f", sumOptimized)
 			infrastructureConsumptionExcel[3][i+1] = fmt.Sprintf("%.3f", sumEnhanced)
 		}
