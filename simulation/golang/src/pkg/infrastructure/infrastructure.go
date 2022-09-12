@@ -85,9 +85,9 @@ func NewInfrastructure(infraPath string, reportPath string) *Infrastructure {
 }
 
 func (infra Infrastructure) ComputeOptimizedPlacement(endChan chan bool) {
-	//originalPlacement := infra.computeOriginalPlacement()
-	//infra.generateReport(originalPlacement, utils.Original)
-	//infra.generateReport(originalPlacement, utils.Basic)
+	originalPlacement := infra.computeOriginalPlacement()
+	infra.generateReport(originalPlacement, utils.Original)
+	infra.generateReport(originalPlacement, utils.Basic)
 
 	optimizedPlacement := infra.computeOptimizedPlacement(utils.Optimized)
 	enhancedPlacement := infra.computeOptimizedPlacement(utils.Enhanced)
@@ -156,9 +156,19 @@ func (infra *Infrastructure) computeOptimizedPlacement(sType utils.SchedulingTyp
 
 		for d := infra.startSimulation; !d.After(infra.endSimulation); d = d.Add(time.Duration(time.Minute)) {
 			rem := finalSolutionContinous[i]
-			if rem == infra.deviceList[i].GetAvailableCPU() && infra.deviceList[i].HasConstantLoadToMove() {
-				rem -= frontendOverhead
+			
+			if infra.deviceList[i].HasConstantLoadToMove() {
+				totWorkload := 0
+
+				for _, w := range infra.deviceList[i].ConstantLoadToMove() {
+					totWorkload += w
+				}
+
+				if rem != infra.deviceList[i].GetAvailableCPU() - totWorkload {
+					rem -= frontendOverhead
+				}
 			}
+			
 			optimizedPlacement[i] = append(optimizedPlacement[i], placementReport{
 				availableCore: rem,
 				date:          d,
@@ -183,9 +193,9 @@ func (infra *Infrastructure) isTheSolutionAcceptable(remainingCore []int) bool {
 
 func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int, constantWorkload []int, finalSolutionContinous []int, id int, consumption []float64, start int, end int, sType utils.SchedulingType) {
 	if id == len(constantWorkload) {
-		if !infra.isTheSolutionAcceptable(remainingCore) {
-			return
-		}
+		//if !infra.isTheSolutionAcceptable(remainingCore) {
+		//	return
+		//}
 
 		//final step of the recursion
 		if finalSolutionContinous[0] == -1 {
@@ -217,7 +227,7 @@ func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int,
 
 	for _, i := range availableDevices {
 
-		if constantWorkload[id] <= remainingCore[i] {
+		if constantWorkload[id] <= remainingCore[i] - frontendOverhead {
 			currentConsumption := infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i], sType)
 			consumption[0] -= currentConsumption
 			remainingCore[i] -= constantWorkload[id]
@@ -225,6 +235,50 @@ func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int,
 			consumption[0] += newConsumption
 			if consumption[0] < consumption[1] {
 				infra.recursiveScheduleContinousLoad(remainingCore, constantWorkload, finalSolutionContinous, id+1, consumption, i, end, sType)
+			}
+			consumption[0] -= newConsumption
+			consumption[0] += currentConsumption
+			remainingCore[i] += constantWorkload[id]
+		}
+	}
+
+	return
+}
+
+func (infra *Infrastructure) recursiveScheduleContinousLoadExhaustive(remainingCore []int, constantWorkload []int, finalSolutionContinous []int, id int, consumption []float64, start int, end int, sType utils.SchedulingType) {
+	if id == len(constantWorkload) {
+		//if !infra.isTheSolutionAcceptable(remainingCore) {
+		//	return
+		//}
+
+		//final step of the recursion
+		if finalSolutionContinous[0] == -1 {
+			consumption[1] = consumption[0]
+			for i := 0; i < len(finalSolutionContinous); i++ {
+				finalSolutionContinous[i] = remainingCore[i]
+			}
+			return
+		}
+
+		if consumption[0] < consumption[1] {
+			consumption[1] = consumption[0]
+			for i := 0; i < len(finalSolutionContinous); i++ {
+				finalSolutionContinous[i] = remainingCore[i]
+			}
+			return
+		}
+	}
+
+	for i := 0 ; i< len(infra.deviceList) ; i++ {
+
+		if constantWorkload[id] <= remainingCore[i] - frontendOverhead {
+			currentConsumption := infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i], sType)
+			consumption[0] -= currentConsumption
+			remainingCore[i] -= constantWorkload[id]
+			newConsumption := infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i], sType)
+			consumption[0] += newConsumption
+			if consumption[0] < consumption[1] {
+				infra.recursiveScheduleContinousLoadExhaustive(remainingCore, constantWorkload, finalSolutionContinous, id+1, consumption, i, end, sType)
 			}
 			consumption[0] -= newConsumption
 			consumption[0] += currentConsumption
