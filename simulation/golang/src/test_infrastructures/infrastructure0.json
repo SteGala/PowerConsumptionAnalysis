@@ -1,0 +1,72 @@
+{
+    "name": "Infra1",
+    "start_simulation": "2021-12-14 15:00:00",
+    "end_simulation": "2021-12-14 15:10:00",
+    "devices": 
+    [
+        {
+            "name": "crownlabs",
+            "replicas": "1",
+            "CPU_cores": "60853",
+            "CPU_usage_baseline": "5",
+            "constant_load": {
+                "need_to_move": "true",
+                "load_to_move": [3200]
+            },  
+            "variable_load": {
+                "need_to_move": "false",
+                "load_to_move": []
+            },        
+            "consumption_details": "./example_consumption/server_crownlabs_optimized_consumption.json",
+            "performance_details": "./example_performance/server_crownlabs_optimized_performance.json"
+        },
+        {
+            "name": "polycube",
+            "replicas": "4",
+            "CPU_cores": "18766",
+            "CPU_usage_baseline": "5",
+            "constant_load": {
+                "need_to_move": "true",
+                "load_to_move": [3200]
+            }, 
+            "variable_load": {
+                "need_to_move": "false",
+                "load_to_move": []
+            },                 
+            "consumption_details": "./example_consumption/server_polycube_consumption.json",
+            "performance_details": "./example_performance/server_polycube_performance.json"
+        },
+        {
+            "name": "desktop",
+            "replicas": "8",
+            "CPU_cores": "8314",
+            "CPU_usage_baseline": "5",
+            "constant_load": {
+                "need_to_move": "true",
+                "load_to_move": [3200]
+            }, 
+            "variable_load": {
+                "need_to_move": "false",
+                "load_to_move": []
+            },                 
+            "consumption_details": "./example_consumption/desktop_consumption.json",
+            "performance_details": "./example_performance/desktop_performance.json"
+        },
+        {
+            "name": "matebook",
+            "replicas": "4",
+            "CPU_cores": "15192",
+            "CPU_usage_baseline": "5",
+            "constant_load": {
+                "need_to_move": "true",
+                "load_to_move": [3200]
+            }, 
+            "variable_load": {
+                "need_to_move": "false",
+                "load_to_move": []
+            },                 
+            "consumption_details": "./example_consumption/laptop_consumption.json",
+            "performance_details": "./example_performance/laptop_performance.json"
+        }
+    ]
+}

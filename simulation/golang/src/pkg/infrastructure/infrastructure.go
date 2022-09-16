@@ -182,9 +182,9 @@ func (infra *Infrastructure) isTheSolutionAcceptable(remainingCore []int) bool {
 
 func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int, constantWorkload []int, finalSolutionContinous []int, id int, consumption []float64, start int, end int, sType utils.SchedulingType) {
 	if id == len(constantWorkload) {
-		if !infra.isTheSolutionAcceptable(remainingCore) {
-			return
-		}
+		//if !infra.isTheSolutionAcceptable(remainingCore) {
+		//	return
+		//}
 
 		//final step of the recursion
 		if finalSolutionContinous[0] == -1 {
