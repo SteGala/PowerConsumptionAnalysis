@@ -1,4 +1,4 @@
-﻿"Time","power consumption","{domain=""sensor"", entity=""sensor.pc_lab_mss310x_power_w_main_channel"", friendly_name=""Lampada da salotto (mss310x) power W - Main channel"", instance=""192.168.11.67:8123"", job=""homeassistant""}"
+﻿"Time","smart plug measure","timestamp"
 2022-09-16 15:03:10,6.26,1663333389.16
 2022-09-16 15:03:15,6.41,1663333394.16
 2022-09-16 15:03:20,6.41,1663333399.16
