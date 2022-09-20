@@ -44,7 +44,10 @@ func NewInfrastructure(infraPath string, reportPath string) *Infrastructure {
 	defer file.Close()
 
 	byteValue, _ := ioutil.ReadAll(file)
-	json.Unmarshal(byteValue, &iJson)
+	err = json.Unmarshal(byteValue, &iJson)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	i.infraName = iJson.Name
 	i.startSimulation, err = time.Parse("2006-01-02 15:04:05", iJson.StartSimulation)
