@@ -17,6 +17,7 @@ import (
 )
 
 var frontendOverhead = 500
+var frontendOverheadRaspberry = 100
 
 type Infrastructure struct {
 	reportPath          string
@@ -159,7 +160,12 @@ func (infra *Infrastructure) computeOptimizedPlacement(sType utils.SchedulingTyp
 		for d := infra.startSimulation; !d.After(infra.endSimulation); d = d.Add(time.Duration(time.Minute)) {
 			rem := finalSolutionContinous[i]
 			if rem == infra.deviceList[i].GetAvailableCPU() && infra.deviceList[i].HasConstantLoadToMove() {
-				rem -= frontendOverhead
+				if strings.Contains(strings.ToLower(infra.deviceList[i].GetDeviceName()), "rasp") {
+					rem -= frontendOverheadRaspberry
+				} else {
+					rem -= frontendOverhead
+				}
+				
 			}
 			optimizedPlacement[i] = append(optimizedPlacement[i], placementReport{
 				availableCore: rem,
