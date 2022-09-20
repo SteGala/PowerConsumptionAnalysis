@@ -6,12 +6,12 @@
     [
         {
             "name": "crownlabs",
-            "replicas": "1",
+            "replicas": "2",
             "CPU_cores": "60853",
             "CPU_usage_baseline": "2000",
             "constant_load": {
                 "need_to_move": "false",
-                "load_to_move": [0]
+                "load_to_move": []
             },  
             "variable_load": {
                 "need_to_move": "false",
@@ -21,29 +21,13 @@
             "performance_details": "./example_performance/server_crownlabs_optimized_performance.json"
         },
         {
-            "name": "polycube",
-            "replicas": "2",
-            "CPU_cores": "18766",
-            "CPU_usage_baseline": "1000",
-            "constant_load": {
-                "need_to_move": "false",
-                "load_to_move": [0]
-            }, 
-            "variable_load": {
-                "need_to_move": "false",
-                "load_to_move": []
-            },                 
-            "consumption_details": "./example_consumption/server_polycube_consumption.json",
-            "performance_details": "./example_performance/server_polycube_performance.json"
-        },
-        {
             "name": "desktop",
-            "replicas": "10",
+            "replicas": "5",
             "CPU_cores": "8314",
             "CPU_usage_baseline": "300",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [3500]
+                "load_to_move": [2333, 2333, 2333]
             }, 
             "variable_load": {
                 "need_to_move": "false",
@@ -59,7 +43,7 @@
             "CPU_usage_baseline": "300",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [3500]
+                "load_to_move": [2333, 2333, 2333]
             }, 
             "variable_load": {
                 "need_to_move": "false",
@@ -67,6 +51,22 @@
             },                 
             "consumption_details": "./example_consumption/laptop_fulvio_consumption.json",
             "performance_details": "./example_performance/laptop_fulvio_performance.json"
+        },
+        {
+            "name": "raspi",
+            "replicas": "5",
+            "CPU_cores": "923",
+            "CPU_usage_baseline": "50",
+            "constant_load": {
+                "need_to_move": "true",
+                "load_to_move": [2333, 2333, 2333]
+            },  
+            "variable_load": {
+                "need_to_move": "false",
+                "load_to_move": []
+            },        
+            "consumption_details": "./example_consumption/raspberry_consumption.json",
+            "performance_details": "./example_performance/raspberry_performance.json"
         }
     ]
 }
