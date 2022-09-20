@@ -43,7 +43,7 @@
             "CPU_usage_baseline": "300",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [500]
+                "load_to_move": [1500]
             }, 
             "variable_load": {
                 "need_to_move": "false",
@@ -59,7 +59,7 @@
             "CPU_usage_baseline": "300",
             "constant_load": {
                 "need_to_move": "true",
-                "load_to_move": [500]
+                "load_to_move": [1500]
             }, 
             "variable_load": {
                 "need_to_move": "false",
