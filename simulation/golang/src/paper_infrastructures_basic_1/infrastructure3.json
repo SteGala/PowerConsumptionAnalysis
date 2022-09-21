@@ -6,7 +6,7 @@
     [
         {
             "name": "crownlabs",
-            "replicas": "1",
+            "replicas": "2",
             "CPU_cores": "60853",
             "CPU_usage_baseline": "7000",
             "constant_load": {
