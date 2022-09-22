@@ -12,8 +12,8 @@ import (
 	"github.com/stegala/PowerConsumptionAnalysis/pkg/utils"
 )
 
-var numberOfInfrastructure = 20
-var safeThreadMargin = 2
+var numberOfInfrastructure = 15
+var safeThreadMargin = 1
 
 func main() {
 	//go func() {
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	for i := 0; i < numberOfInfrastructure; i++ {
-		infrastructures = append(infrastructures, *infra.NewInfrastructure("./example_infrastructures/infrastructure"+strconv.Itoa(i)+".json", report_path))
+		infrastructures = append(infrastructures, *infra.NewInfrastructure("./paper_infrastructures_optimized_3/infrastructure"+strconv.Itoa(i)+".json", report_path))
 		computationStart = append(computationStart, false)
 		computationEnd = append(computationEnd, false)
 		infraChannel = append(infraChannel, make(chan bool))
@@ -63,7 +63,7 @@ func main() {
 						}
 					}
 				}
-				time.Sleep(time.Duration(5) * time.Second)
+				time.Sleep(time.Duration(1) * time.Second)
 			}
 		}
 		runningInstances++
@@ -91,7 +91,7 @@ func main() {
 				}
 			}
 		}
-		time.Sleep(time.Duration(5) * time.Second)
+		time.Sleep(time.Duration(1) * time.Second)
 	}
 
 	utils.SummarizeReportsConsumption(numberOfInfrastructure, report_path, infrastructures[0].GetSimulationStartTime(), infrastructures[0].GetSimulationEndTime())
@@ -102,7 +102,7 @@ func main() {
 }
 
 func printStatus(start []bool, end []bool) {
-	log.Println("-----------------------------------------")
+	//log.Println("-----------------------------------------")
 	str := ""
 	for i := 0; i < len(start); i++ {
 		if end[i] == true {
@@ -116,5 +116,5 @@ func printStatus(start []bool, end []bool) {
 	str += "|"
 
 	log.Println(str)
-	log.Println("-----------------------------------------")
+	//log.Println("-----------------------------------------")
 }

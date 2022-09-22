@@ -17,7 +17,7 @@ import (
 )
 
 var frontendOverhead = 500
-var frontendOverheadRaspberry = 100
+var frontendOverheadRaspberry = 200
 
 type Infrastructure struct {
 	reportPath          string
@@ -159,13 +159,18 @@ func (infra *Infrastructure) computeOptimizedPlacement(sType utils.SchedulingTyp
 
 		for d := infra.startSimulation; !d.After(infra.endSimulation); d = d.Add(time.Duration(time.Minute)) {
 			rem := finalSolutionContinous[i]
-			if rem == infra.deviceList[i].GetAvailableCPU() && infra.deviceList[i].HasConstantLoadToMove() {
+			load := 0
+			for _, l := range infra.deviceList[i].ConstantLoadToMove() {
+				load += l
+			}
+
+			if infra.deviceList[i].HasConstantLoadToMove() && rem > infra.deviceList[i].GetAvailableCPU()-load {
 				if strings.Contains(strings.ToLower(infra.deviceList[i].GetDeviceName()), "rasp") {
 					rem -= frontendOverheadRaspberry
 				} else {
 					rem -= frontendOverhead
 				}
-				
+
 			}
 			optimizedPlacement[i] = append(optimizedPlacement[i], placementReport{
 				availableCore: rem,
@@ -194,23 +199,53 @@ func (infra *Infrastructure) recursiveScheduleContinousLoad(remainingCore []int,
 		//if !infra.isTheSolutionAcceptable(remainingCore) {
 		//	return
 		//}
+		//correct consumption with frontend overhead
+		consumptionCorrection := 0.0
+		for i := 0; i < len(infra.deviceList); i++ {
+			rem := remainingCore[i]
+
+			load := 0
+			for _, l := range infra.deviceList[i].ConstantLoadToMove() {
+				load += l
+			}
+
+			if infra.deviceList[i].HasConstantLoadToMove() && rem > infra.deviceList[i].GetAvailableCPU()-load {
+				// need to add frontend overhead
+				if strings.Contains(strings.ToLower(infra.deviceList[i].GetDeviceName()), "rasp") {
+					if rem < frontendOverheadRaspberry {
+						return
+					} else {
+						consumptionCorrection += infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i]-frontendOverheadRaspberry, sType)
+					}
+				} else {
+					if rem < frontendOverhead {
+						return 
+					} else {
+						consumptionCorrection += infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i]-frontendOverhead, sType)
+					}
+				}
+			} else {
+				consumptionCorrection += infra.deviceList[i].GetConsumptioFromRemainingResources(remainingCore[i], sType)
+			}
+		}
 
 		//final step of the recursion
 		if finalSolutionContinous[0] == -1 {
-			consumption[1] = consumption[0]
+			consumption[1] = consumptionCorrection
 			for i := 0; i < len(finalSolutionContinous); i++ {
 				finalSolutionContinous[i] = remainingCore[i]
 			}
 			return
 		}
 
-		if consumption[0] < consumption[1] {
-			consumption[1] = consumption[0]
+		if consumptionCorrection < consumption[1] {
+			consumption[1] = consumptionCorrection
 			for i := 0; i < len(finalSolutionContinous); i++ {
 				finalSolutionContinous[i] = remainingCore[i]
 			}
-			return
 		}
+
+		return
 	}
 
 	availableDevices := make([]int, 0, len(remainingCore))
